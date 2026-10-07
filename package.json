@@ -6,21 +6,52 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "local:up": "bash scripts/local-server.sh up",
+    "local:restart": "bash scripts/local-server.sh restart",
+    "local:down": "bash scripts/local-server.sh down",
+    "local:status": "bash scripts/local-server.sh status",
+    "local:logs": "bash scripts/local-server.sh logs",
+    "share": "bash scripts/share-tunnel.sh start",
+    "share:status": "bash scripts/share-tunnel.sh status",
+    "share:stop": "bash scripts/share-tunnel.sh stop",
+    "deploy:netlify": "bash scripts/deploy-netlify.sh",
+    "smoke": "node scripts/smoke-deploy.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:rls": "node --env-file=.env.local scripts/rls-check.mjs",
+    "db:start": "supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset --local",
+    "db:types": "supabase gen types typescript --local --schema public > src/lib/database.types.tmp && mv src/lib/database.types.tmp src/lib/database.types.ts || (rm -f src/lib/database.types.tmp; exit 1)",
+    "db:advisors": "supabase db advisors --local",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
-    "next": "16.3.5",
+    "@anthropic-ai/sdk": "0.125.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.116.0",
+    "next": "16.3.8",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "unpdf": "1.8.1",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "24.13.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "5.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.5",
+    "eslint-config-next": "16.3.8",
+    "supabase": "2.117.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "5.0.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

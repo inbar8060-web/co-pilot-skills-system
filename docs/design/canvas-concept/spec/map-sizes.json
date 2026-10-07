@@ -1,0 +1,583 @@
+{
+ "widget_map": [
+  {
+   "widget": "Crew \u00b7 Start a routine (data-guide 'start'). Desktop board default c7\u00d73 = M. Sizes board defines S 4\u00d72 (390.67\u00d7164px) and M 7\u00d73 (698.67\u00d7256px) only.",
+   "current_equivalent": "src/app/app/start-routine.tsx: the StartRoutine Panel on /app, rendered by src/app/app/page.tsx. It has an h2 'Start a routine', the subtitle 'Solo, or with a consenting partner', a ChipRadio of CREW_ROUTINES, a partner sentence, and the LinkButton 'Continue to briefing' that goes to /app/routines?routine=<code>&partner=<id>. Without a report the button is replaced by a disabled span. The full form is src/app/app/routines/generator.tsx on /app/routines.",
+   "data_source": "Routines: CREW_ROUTINES = ['simulator','flight','debrief','training'] (src/lib/schemas.ts) with ROUTINE_LABELS (src/lib/utils.ts: flight 'Flight', simulator 'Simulator session', debrief 'Event debrief', training 'Training'). Partners: loadConsentedPartners(supabase, user.id) (src/lib/partners.ts). It reads consent_requests (target_user_id, routine_type, valid_until) where requester_user_id = me, status 'approved' and valid_until > now() (RLS consent_select), joins crew_directory() (SECURITY DEFINER: id, full_name, team, has_active_report, end_users of my org only), and computes days = daysUntil(valid_until). Gate: users.has_active_report via getCurrentUser() (src/lib/auth.ts). Last used: routine_sessions (routine_code, partner_user_id, scenario_context), newest row, RLS sessions_select primary_user_id = auth.uid(). Enforcement on submit: POST /api/generate-routine-insight \u2192 runCrewRoutine (src/lib/routines.ts) re-checks consent, sharing_level, allowed_scenarios and partner report.",
+   "availability": "partial",
+   "full_view": "/app/routines (RoutineGenerator plus the 'Consented partners' SideCard). Beyond the widget it adds: the Partner chip group ('Solo' / 'self-briefing' plus every consented partner, with the sub-labels 'approved \u00b7 N days', 'no consent for this routine' and 'no report yet'), 'Aircraft / fleet', 'Phase / scenario type', 'Scenario', 'Additional notes (optional)', the 'Generate action cards' button with error text, and the routine history list. Session output opens at /app/routines/[id].",
+   "gaps": "(1) The S picker does not exist: <button type='button' aria-label='Routine: Flight'> labelled 'Flight \u00b7 Yoav F.' with a chevron. There is no menu or listbox component in src/components (ui.tsx has ChipRadio, Segmented and Select only), and no choice list is designed (routine \u00d7 partner). (2) The left-bar tools 'Continue' (primary), 'Partner', 'Context' and 'Last used' do not exist. 'Context' needs an inline mini-form or a Drawer (overlays.tsx has Drawer). 'Last used' needs a query on the newest routine_sessions row. (3) The partner name format 'Yoav F.' (first name + last initial) has no helper; crew_directory returns full_name only. (4) States not designed at S or M: no consenting partner (repo copy 'No consenting partner for Flight yet \u00b7 solo self-briefing'), partner without a report, blocked without a report (repo shows a disabled button plus a banner), consent pending or expired. (5) No L or XL is defined. (6) Chip order: the repo is simulator, flight, debrief, training; the concept is 'Flight', 'Simulator', 'Training', 'Debrief', 'Coaching'. (7) The selected routine and partner must be shared with the main-bar 'Start routine' button (phone board: the big play button in the main bar is the only start action).",
+   "conflicts": "ROLE RULE: the chip 'Coaching' cannot be a crew routine. CREW_ROUTINES excludes it. GenerateInsightRequestSchema.routineType is z.enum(CREW_ROUTINES). consent_requests.routine_type is checked against simulator/flight/debrief/training. Coaching runs only through runCoachingRoutine (org_admin or super_admin manager \u2192 employee, /admin/coaching) and takes an employee, not a consenting partner. Drop it for end_user. For an org_admin viewing /app it may link to /admin/coaching. CONSENT WINDOW: the copy 'approved, valid 14 days' is sample data. consent_guard sets valid_until = now() + 30 days, and 14 days is the pending-request expiry (expires_at), so render daysUntil(valid_until) as the repo already does. BLIND SYNERGY: the picker may only offer partners with a valid approved consent for that routine_type and has_active_report = true. Others are listed disabled with the reason, as generator.tsx does. The server remains the gate. COLOUR: the S icon button is red #BD2025, the M text button on the sizes board is navy #0E153E, the desktop board M button is red, and the repo primary is --acc oklch(0.5 0.11 235) (blue). LABELS: 'Simulator' vs ROUTINE_LABELS 'Simulator session'.",
+   "implementation_notes": "SIZES (rule: 'at S the primary action stays, chips collapse to a picker, secondary text goes to the left bar').\nS 4\u00d72: header padding 10px 14px, title only plus badge 'S \u00b7 4\u00d72' (resize mode only). Body is one row (gap 10px, padding 14px) holding the picker button (flex 1, 44px, 1px line2 border, label '<Routine> \u00b7 <Partner first name + initial>' or '<Routine> \u00b7 Solo', chevron 'M6 9l6 6 6-6') and a 44\u00d744 icon link aria-label 'Continue to briefing' (play 'M7 4l13 8-13 8z'). When blocked: aria-disabled, and the left bar explains 'Report missing'. Left bar shows 'Solo, or with a consenting partner' plus the partner sentence.\nM 7\u00d73: subtitle; chip row as a real radiogroup (reuse ChipRadio, restyled: 40px, padding 0 16px, selected = ink border + accsoft fill); footer row with top rule: partner sentence 'Partner for <Routine>: <strong>Name</strong> \u00b7 approved, valid N days' (or the solo sentence) and 'Continue to briefing' (44px, padding 0 22px).\nProposed L 8\u00d74: M plus the Partner chip group from generator.tsx, so routine and partner are both chosen in the widget.\nNo XL: the context form belongs on /app/routines.\nPhone (single column, height auto): chips wrap, line 'Partner: Yoav F. \u00b7 approved, 14 days', no in-widget button (main bar play button).\nThe picker can be a native <select> with optgroups per routine, or a popover listbox with role='listbox' and arrow keys and type-ahead. Keep the href contract /app/routines?routine=&partner= unchanged."
+  },
+  {
+   "widget": "Crew \u00b7 Credits & tier (data-guide 'tier', aria-label 'Select widget: Credits and tier'). Desktop default c5\u00d73 = M. Sizes board: S 3\u00d72 titled 'Credits', M 5\u00d73 titled 'Credits & tier'.",
+   "current_equivalent": "src/app/app/page.tsx right column SideCard: the uppercase label '<Current> \u2192 <Next>' (tierShort), '<earned> / <next.min_credits>', ProgressBar label 'Tier progress', '<N> more credits \u00b7 <streak>-week streak' or 'Top tier reached'. The PageHero status line shows '<balance> credits \u00b7 <Tier>, <N> to <Next>'. The same SideCard repeats on /app/rewards (src/app/app/rewards/page.tsx).",
+   "data_source": "user_gamification_status: current_balance is the hero '180' (spendable), total_credits_earned is '340' (drives the tier), current_streak_weeks is '2-week streak', readiness_tier. RLS status_select: own row or super admin. readiness_tiers (tier, label, min_credits, sort_order), RLS tiers_select true. tierProgress(totalCredits, tiers) (src/lib/gamification-shared.ts) gives current, next and creditsToNext (the '160'). The current bar percent is earned / next.min_credits \u00d7 100 (340/500 = 68%, matching the concept), not tierProgress.percent, which measures from the current tier floor. tierShort(label) is in src/lib/utils.ts. Weekly stats: '+40 this week' = sum(credits_awarded > 0) from gamification_logs where user_id = me and created_at >= date_trunc('week', now()) (RLS logs_select own; index gamification_logs_user_action_idx). '3 reflections' = count(reflections) this week (RLS reflections_select own). '1 insight read' = insight_acknowledgements row for isoWeekKey() (RLS acks_select own), or gamification_logs action 'weekly_insight_read'.",
+   "availability": "available",
+   "full_view": "/app/rewards ('Credits & rewards'). It already shows the status line ('<balance> credits available', '<earned> earned in total', '<Tier> \u00b7 <N> to <Next>'), the tier card, 'How to earn' (active gamification_rules: label, '+credits', 'One time' / 'Up to N per day/week'), 'Recent activity' (8 gamification_logs with ACTION_LABELS and \u00b1credits), the Catalog and 'My redemptions'. The full view must add: the whole tier ladder (all readiness_tiers with min credits and the current tier marked), a paginated full credit ledger (the left-bar 'Log'), the weekly stats history, and the streak rule (streak_bonus every 3rd consecutive week, +30). Left bar: 'Redeem' (primary) \u2192 /app/rewards#catalog, 'Rules' \u2192 #how-to-earn, 'Log' \u2192 the ledger.",
+   "gaps": "The weekly stats strip needs 2\u20133 extra own-row queries; propose one SECURITY INVOKER RPC public.my_credit_summary(). There is no paginated ledger view. S and M states for top tier (progress.next = null \u2192 'Top tier reached'), for 0 credits and for a missing status row are not designed. The ProgressBar component lacks aria-valuetext and its track uses bg-line, while the concept track is #E2E7FD (accsoft). No L or XL is defined.",
+   "conflicts": "TIER NAMES: 'Ready \u2192 Proficient' (crew boards) vs readiness_tiers labels 'Tier 1 - Bronze' \u2026 'Tier 4 - Platinum'. The tier keys are pinned by the check constraint (bronze/silver/gold/platinum), TierInput, the TIERS const in src/app/admin/page.tsx and TIER_TONE in src/app/super/rules/page.tsx. The concept's own org-admin and super-admin boards use Bronze/Silver/Gold/Platinum, so it contradicts itself. Only readiness_tiers.label is free text: rename labels, or keep Bronze\u2026. RESOLVED QUESTION: 180 vs 340/500 is consistent with the repo (balance vs earned). 'TEXT NEVER SCALES' EXCEPTIONS: the hero is 28px at S vs 34px at M, and the title changes from 'Credits' to 'Credits & tier' by size.",
+   "implementation_notes": "SIZES.\nS 3\u00d72: title 'Credits'. Row 1 (baseline, space-between): balance (28/800, -0.02em, lh 1) and '<creditsToNext> to <Next>' (12/700 muted, ellipsis); at top tier, 'Top tier'. Row 2: 8px bar at earned/next.min. Dropped to the left bar: subtitle, ' credits', '<earned> / <next>', streak, stats.\nM 5\u00d73: title 'Credits & tier'; subtitle '<Current> \u2192 <Next>'; balance (34/800) + ' credits' (14/700 muted); right '<earned> / <next.min>' (13/700 tabular-nums); bar; '<N> more credits to <Next> \u00b7 <streak>-week streak'; stats strip '+<week credits> this week', '<n> reflections', '<n> insight read' (bold number + muted label).\nProposed L 7\u00d73: M plus a compact tier ladder (4 tiers with min credits) on the right.\nProposed XL 8\u00d74: L plus the last 5 ledger rows (ACTION_LABELS, \u00b1credits, short date) and 'Full log \u2192'.\nPhone: header meta '340 / 500', bar, merged line '180 credits \u00b7 160 more to Proficient \u00b7 2-week streak'.\nProgressbar: role progressbar, aria-label 'Tier progress', aria-valuenow = rounded %, aria-valuetext '340 of 500 credits toward <Next>'.\n'This week' = ISO week starting Monday, the same as admin_award_credits streak logic (date_trunc('week'))."
+  },
+  {
+   "widget": "Crew \u00b7 Recent routines (data-guide 'recent'). Desktop default c4\u00d73 = M. Sizes board: S 3\u00d72, M 4\u00d73, L 5\u00d73, XL 8\u00d74, the only widget with all four.",
+   "current_equivalent": "src/app/app/page.tsx section 'Recent routines': 3 rows via Row/RowText. Title is ROUTINE_LABELS[routine_code], sub is formatDate(created_at) ('7 Oct 2026, 09:12'), Pill 'Blind synergy' (acc) or 'Solo'. SectionTitle action 'History' \u2192 /app/routines. Empty state: 'No routines yet. Start one above.'. Full list: src/app/app/routines/page.tsx 'History' section (20 rows, same row; status '<N> sessions in history').",
+   "data_source": "routine_sessions: id, routine_code, created_at, partner_user_id, scenario_context jsonb {scenario, aircraft, phase, notes}. RLS sessions_select: primary_user_id = auth.uid(). Index routine_sessions_primary_idx (primary_user_id, created_at desc). The total ('8 sessions', '+6 more', '5 of 8') is select('id', {count:'exact', head:true}), already used on /app/routines. Partner name: crew_directory().full_name, as /app/routines/[id] does. Field mapping: routine name follows the session-page rule TITLES in src/app/app/routines/[id]/page.tsx (debrief 'Event debrief', coaching 'Coaching guidance', otherwise '<ROUTINE_LABEL> briefing'). Short scenario = [scenario_context.aircraft, scenario_context.phase].join(' \u00b7 ') \u2192 '787 \u00b7 Night approach'. Long scenario = scenario_context.scenario (\u22642000 chars, ellipsised) prefixed by aircraft. Mode = partner_user_id ? Synergy : Solo. Filter = .is('partner_user_id', null) for Solo or .not('partner_user_id','is',null) for Synergy.",
+   "availability": "partial",
+   "full_view": "Today /app/routines 'History' (20 newest, no filter, no paging, title + date + mode only). Proposed /app/routines/history (or /app/routines?view=history&mode=all|solo|synergy&routine=<code>&page=n): a table with Routine, Scenario (full text), Partner, Mode, date and time, reflections count, credits earned, and pagination with the total. Each row \u2192 /app/routines/[id], which shows all action cards (InsightCards), 'Copy all cards \u2192', 'Context you gave', the Reflection form ('+20 credits, once per day') and past reflections. Left bar: 'Open last' (primary), 'Copy cards' (outputToText of the newest ai_generated_output, fetched on demand), 'Reflect' \u2192 /app/routines/[id]#reflection, 'Filter'.",
+   "gaps": "No short relative date formatter ('Today', '3 Oct', '29 Sep'); formatDate gives date+time. No first-name + initial formatter ('Yoav F.'). Current queries select no scenario_context. No All/Solo/Synergy filter on any page. Row caps per size do not exist. Footers in the prototype are plain text ('+6 more', 'History \u00b7 8 sessions \u2192', 'Full history \u2192'); they must be Links. Only one scenario field is stored: the 'short' (aircraft \u00b7 phase) and 'long' (scenario) split is a derivation, not an editorial summary. Empty, loading and error states are not designed at any size. A partner who left the org or changed role disappears from crew_directory \u2192 render '\u2014' or 'Former crew member'.",
+   "conflicts": "MODE LABEL: 'Synergy' (sizes and phone boards) vs 'Blind synergy' (desktop board, repo pills on /app and /app/routines, settings 'Level 1 \u00b7 Blind synergy') vs 'Blind Synergy' (/app/consents copy). Pick one. COACHING ROWS: 'Coaching guidance \u2026 Solo' cannot appear for a crew member. Only org_admin/super_admin create coaching sessions (primary_user_id = manager, partner_user_id = employee). For an admin viewing /app the current rule would label coaching 'Blind synergy', because partner_user_id holds the employee. Mode must be derived from routine_code (coaching \u2192 its own label, partner column 'Employee'). LABEL: 'Simulator briefing' vs the session page 'Simulator session briefing'. ANONYMITY: a partner name in the user's own history is allowed (the session page already shows 'Blind synergy with <name>'); never the partner's type. ACCESSIBILITY: S shows mode by dot colour only (navy #0E153E Synergy, grey #9397A8 Solo).",
+   "implementation_notes": "SIZES (rule: 'same widget, four spans. Text never scales; the amount shown does.').\nS 3\u00d72: 2 links, 40px each, padding 0 14px: name (14/700, ellipsis) + 8px dot with visually hidden 'Synergy'/'Solo'. Footer Link '+<total\u22122> more' \u2192 full history.\nM 4\u00d73: 3 links, 56px: name over '<short date> \u00b7 <short scenario>' (13 muted) + pill. Footer Link 'History \u00b7 <total> sessions \u2192'.\nL 5\u00d73: header filter radiogroup 'All' / 'Solo' / 'Synergy' (segmented, 12/700, active accsoft). 4 rows, 48px, on ONE shared grid (table or subgrid) minmax(0,1.4fr) minmax(0,1fr) auto auto: name | short scenario | pill | date (tabular-nums). No footer.\nXL 8\u00d74: same filters; column header 'Routine', 'Scenario', 'Partner', 'Mode', 'Date' (12/700 uppercase 0.05em). Rows: name | long scenario | partner or '\u2014' | pill | date. Footer '<shown> of <total> sessions' + Link 'Full history \u2192'. Five 48px rows plus header and footer need \u2248357px vs 348px: show 4 rows, use 44px rows, or compute rows = floor(available/48).\nAlways fetch 5 rows + count, so a resize needs no refetch; the filter refetches (URL search param or server action).\nPhone: 1 row ('Flight briefing', 'Today \u00b7 787 \u00b7 Night approach', 'Synergy')."
+  },
+  {
+   "widget": "Crew \u00b7 Weekly insight (data-guide 'insight', aria-label 'Select widget: Weekly insight', kicker title 'Insight \u00b7 Week 41'). Desktop default c4\u00d73 = M. No size spec on the sizes board.",
+   "current_equivalent": "src/app/app/page.tsx SideCard tone acc. Kicker 'Insight \u00b7 Week <isoWeekNumber()>', title, body, and the ActionForm acknowledgeInsight 'Confirm read \u00b7 +10', or 'Confirmed this week' with an ok dot.",
+   "data_source": "weekly_insights (id, week_index unique, title, body, focus in briefing_prep/stress_management/debrief_reflection) selected by weekIndex() (rotation modulo 6), RLS insights_select true. insight_acknowledgements (user_id, insight_id, iso_week, acknowledged_at; PK user_id + iso_week), RLS acks_select and acks_insert own. Action acknowledgeInsight (src/app/app/actions.ts) \u2192 awardCredits('weekly_insight_read'), +10 per_week limit 1.",
+   "availability": "partial",
+   "full_view": "None exists. Propose /app/insights: this week's insight with Confirm, earlier weeks (computed from past ISO weeks via weekIndex, with ack state from insight_acknowledgements), and a focus filter aligned with user_preferences_and_consent.notification_focus. Left bar: 'Confirm' (primary), 'Past' \u2192 /app/insights, 'Snooze'.",
+   "gaps": "'Snooze: Hide it until next week' needs per-user state (snoozed_until). 'Past' has no page and no dated history: the catalog is a 6-item rotation with no publish dates. No S, L or XL spec exists.",
+   "conflicts": "The phone board moves Confirm out of the widget into the action sheet ('Confirm', 'Past', 'Snooze', 'Pin', 'Hide'). The seeded insight titles differ from the concept sample (data only). The insight ignores the user's notification_focus.",
+   "implementation_notes": "Proposed sizes, following the board rules.\nS 3\u00d72: title row is the kicker 'Insight \u00b7 Week N'; the insight title clamped to 2 lines; Confirm stays as a compact 'Confirm \u00b7 +10' button (or a check icon button with aria-label 'Confirm read \u00b7 +10'). The body goes to the left bar.\nM 4\u00d73: title + body clamped to about 4 lines + 'Confirm read \u00b7 +10' or 'Confirmed this week'.\nL 5\u00d73: full body + focus label.\nXL 8\u00d73: L + the 2 previous insights with read state + 'All insights \u2192'.\nSnoozed state: the widget collapses to a 'Snoozed until Monday' placeholder, or is removed until next ISO week. Phone: no in-widget button."
+  },
+  {
+   "widget": "Crew \u00b7 Consented partners (data-guide 'partners'). Desktop default c4\u00d73 = M, header meta '1 pending'. No size spec on the sizes board.",
+   "current_equivalent": "src/app/app/routines/page.tsx SideCard 'Consented partners' (name, '<team> \u00b7 valid <max days> days', routine pills, 'Request another partner' \u2192 /app/consents). Full management is /app/consents (src/app/app/consents/page.tsx). Layout nav dot for pending inbox (src/app/app/layout.tsx).",
+   "data_source": "loadConsentedPartners (approved, valid_until > now, grouped per partner with routine \u2192 daysUntil). Outgoing pending: consent_requests where requester_user_id = me, status 'pending', expires_at > now (row 'Noa P. \u00b7 request sent 2 days ago \u00b7 Pending'). Incoming pending count: target_user_id = me, status 'pending', expires_at > now (already queried in layout.tsx and page.tsx). Names and team: crew_directory(). RLS consent_select requester or target. expire_stale_consents() exists.",
+   "availability": "partial",
+   "full_view": "/app/consents: Inbox ('Approve \u00b7 +15' / 'Decline'), 'My requests' with status text ('Approved <date> \u00b7 valid N days', 'Declined', 'Expired', 'Requested'), 'Inbox history', and 'Request sharing' (crew member select, routine chips, 'Send request'). Must add: revoke, per-routine validity, and a request duration. Left bar: 'Request' (primary), 'Review' \u2192 /app/consents inbox, 'Revoke'.",
+   "gaps": "'Revoke: Withdraw a consent you gave' is impossible today. consent_guard raises CONSENT_ALREADY_RESOLVED on any update to a non-pending row, and the status enum has no 'revoked'. It needs a migration (status 'revoked'; target may move approved \u2192 revoked; runCrewRoutine already requires status 'approved'). 'Request \u2026 for a routine and a number of days' needs a requested_days column; the window is fixed at 30 days. The role subtitles 'First officer' / 'Captain' / 'Pilot' are not exposed: crew_directory returns team only by design. Relative 'request sent 2 days ago' and short pill labels ('Sim'; the SHORT map exists only in admin/page.tsx) are missing.",
+   "conflicts": "ANONYMITY / MINIMAL DIRECTORY: crew_directory deliberately exposes 'no emails, no roles, no demographics'. Showing operational_category to crew widens it, so use team. Never show any partner type. HEADER '1 pending' is ambiguous: the concept row is an outgoing request, but the guide says the dot means 'someone is waiting for your answer' (incoming). 'valid 14 days' vs the 30-day approval window.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: header meta '<n> pending' (warn dot + text, Link to inbox). 2 rows: name + routines count or validity. Footer '+N more'.\nM 4\u00d73: 3 rows, name over '<team> \u00b7 valid N days', up to 2 routine pills + '+N'. Pending rows get a 'Pending' pill.\nL 5\u00d73: one-line grid name | team | routines | validity; filter 'All' / 'Approved' / 'Pending'; 4 rows.\nXL 8\u00d74: headers 'Partner', 'Team', 'Routines', 'Valid until', 'Status'; 5 rows; '<n> of <N>' + 'All sharing \u2192'.\nRe-use the effective-status rule from consents/page.tsx (pending with expires_at < now \u2192 expired)."
+  },
+  {
+   "widget": "Crew \u00b7 My report (data-guide 'report'). Desktop default c3\u00d73, a 3-column M. No size spec on the sizes board.",
+   "current_equivalent": "src/app/app/report/page.tsx: verified \u2192 SideCard Token / Framework / Linked / Confidence + Panel 'Profile summary'; missing \u2192 ReportUploader. Also the overview Banner 'Routine generation is blocked until a full report is loaded' and the CrewShell 'More' sheet status ('Report verified' / 'Report missing').",
+   "data_source": "users.has_active_report (getCurrentUser), kept in sync by trigger wall.sync_has_active_report. For 'MBTI Step II \u00b7 linked by your admin \u00b7 12 Sep 2026': loadPersona(user.id) (src/lib/routines.ts) \u2192 admin_wall_get_profile_for_user (service_role only, SECURITY DEFINER) returning profile_id, code, framework, persona, linked_at, method. method 'manual'/'auto' \u2192 'linked by your admin', 'self' \u2192 'uploaded by you'. Format with humanize(framework) and formatDay(linked_at). Upload: ReportUploader \u2192 POST /api/reports/upload \u2192 ingestReport(linkToSelf).",
+   "availability": "available",
+   "full_view": "/app/report: token (PROF-\u2026), framework, linked date, confidence, summary, type code, communication, conflict, decisions, leadership, under stress, strengths, watch-outs, feedback preferences; the uploader when missing. Left bar: 'Upload' (primary), 'Privacy' (new short explainer, or /app/report#privacy), 'Preview' \u2192 /app/report.",
+   "gaps": "The widget must not call loadPersona, which pulls the whole persona from behind the wall for a tile. Add service-role admin_wall_get_report_meta(p_user_id) returning framework, linked_at and method only. 'Upload: Add or replace your report' fails: ingestReport with linkToSelf throws ALREADY_LINKED (409) on the user_profile_mappings_user_id_key unique constraint, and only a super admin can unlink. 'Privacy' has no page.",
+   "conflicts": "ANONYMITY: never render type_code or persona fields on the widget at any size. A canvas is glanceable and screen-shareable. The full page is the user's own private view. Org admins still see only Yes/No.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: status ('Report verified' ok dot / 'Report missing' warn dot) + one line framework. When missing, the primary 'Upload' stays.\nM 3\u00d73: status; '<Framework> \u00b7 linked by your admin \u00b7 <date>'; 'Your type is never shown to partners (anonymity wall).'.\nL 5\u00d73: M + token code and confidence + 'Preview \u2192'.\nNo XL (content belongs on /app/report).\nMissing state at all sizes adds 'Routine generation is blocked until a full report is loaded'."
+  },
+  {
+   "widget": "Crew \u00b7 Rewards catalog (data-guide 'rewards', header meta org name 'Skyline Airways'). Desktop default c5\u00d73 = M, 2 cards. Guide rule: 'Make this widget wider and it shows three cards instead of two.'",
+   "current_equivalent": "src/app/app/rewards/page.tsx 'Catalog' grid: title, '<cost> cr' pill, description, 'Unlimited' / '<n> left', and an ActionForm redeemReward labelled 'Redeem' / 'Not enough credits' / 'Out of stock'. Its confirm modal 'Redeem <title>?' shows 'Balance after'.",
+   "data_source": "organization_rewards (id, title, description, cost_in_credits, inventory_count with -1 = unlimited, is_active), RLS rewards_select own org and active. organizations.name (org_select). user_gamification_status.current_balance for '70 more credits needed' (cost \u2212 balance). redeemReward \u2192 redeem_reward(p_reward_id) RPC (row locks; errors REWARD_UNAVAILABLE, OUT_OF_STOCK, INSUFFICIENT_CREDITS).",
+   "availability": "available",
+   "full_view": "/app/rewards: full catalog, 'My redemptions' (status requested/approved/delivered/cancelled), 'How to earn', 'Recent activity', tier card. Left bar: 'Catalog' (primary), 'Redeemed' \u2192 /app/rewards#redemptions, 'Rules' \u2192 #how-to-earn.",
+   "gaps": "No line combining stock and shortfall ('3 left \u00b7 70 more credits needed'). Card count is not derived from width. The redemption confirm Modal must open from a small widget. No empty state ('No rewards published yet' exists on the page).",
+   "conflicts": "Button styles: red primary 'Redeem' vs secondary 'Not enough credits'; repo primary is blue --acc.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: the single cheapest affordable reward: title + '<cost> cr' + 'Redeem', or '<n> more credits'. Footer '<N> rewards \u2192'.\nM 5\u00d73: 2 cards.\nL 7\u00d73: 3 cards (the guide rule).\nXL 8\u00d74 or 12\u00d73: 4 cards + 'Full catalog \u2192'.\nCards = floor(inner width / ~230px). Text never scales; descriptions clamp to 2 lines (.clamp2)."
+  },
+  {
+   "widget": "Crew canvas \u00b7 Empty grid slot ('4 \u00d7 3 free \u00b7 drop a widget here', dashed). Not a widget; the snap target for move, resize and Add.",
+   "current_equivalent": "None (no canvas exists).",
+   "data_source": "Computed from the stored layout (user_canvas_layouts.layout) against the 12-column grid and the widget registry spans. No DB data.",
+   "availability": "missing",
+   "full_view": "Not applicable. 'Add' opens the widget library.",
+   "gaps": "Needs free-rectangle detection, drop handling and a keyboard path: choose 'Add' \u2192 the widget is placed in the first free slot that fits its default size.",
+   "conflicts": "The concept shows the slot permanently. In production show it only in edit/drag mode, or it wastes a 4\u00d73 block.",
+   "implementation_notes": "Label = '<cols> \u00d7 <rows> free \u00b7 drop a widget here' from the largest free rectangle. aria-hidden outside drag mode. During keyboard move, announce 'Drop target 4 by 3 free' via aria-live."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Crew members (KPI tile, data-guide 'members'), default c3\u00d72 = S.",
+   "current_equivalent": "src/app/admin/page.tsx StatTile 'Crew members', value stats.members, hint 'Active accounts', href /admin/users.",
+   "data_source": "org_engagement_stats() \u2192 members = count(users where organization_id = private.current_org_id() and role 'end_user'). SECURITY DEFINER, raises FORBIDDEN unless is_org_admin_of or is_super_admin. Org name from organizations (org_select) for 'Active accounts \u00b7 Skyline Airways'.",
+   "availability": "available",
+   "full_view": "/admin/users (search, team and category filters, 'Add crew member' modal, Edit drawer, Report 'Loaded'/'Missing'). Left bar: 'Open users' (primary), 'Invite', 'Export'.",
+   "gaps": "'Active' has no meaning in the data: no last_sign_in or disabled flag in public.users. Export has no route (it must be audited critical, like research.exported). A super admin with no organization gets a banner today; the widget needs that state.",
+   "conflicts": "None with rules (counts only).",
+   "implementation_notes": "Allowed sizes: S 3\u00d72 (title, value ~40px/800 tabular-nums, hint); proposed M 4\u00d73 = S + members by team (users.team counts) + 'new this month' (users.created_at). Do not allow 2-column tiles (titles wrap; see super admin)."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Reports loaded (KPI, 'reports'), c3\u00d72 = S, value '41 / 48' in ok colour, hint '85% coverage'.",
+   "current_equivalent": "src/app/admin/page.tsx StatTile 'Reports loaded' '<loaded> / <members>', hint '<coverage>% coverage', tone ok \u226580% else warn, href /admin/ingest.",
+   "data_source": "org_engagement_stats() reports_loaded = count end_users with has_active_report; members.",
+   "availability": "available",
+   "full_view": "/admin/users filtered to missing (new param ?report=missing; UsersPage supports only q, team, category) and /admin/ingest. Left bar: 'Ingest' (primary), 'Missing'.",
+   "gaps": "No report filter on /admin/users.",
+   "conflicts": "None. Only the Yes/No signal is used, which org admins are allowed.",
+   "implementation_notes": "S 3\u00d72 default. Proposed M 4\u00d73 = S + 8px coverage bar + '<n> missing \u2192' Link to the Missing reports widget or filter."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Avg. credits (KPI, 'avgcredits'), c3\u00d72 = S, '212', 'Team readiness proxy'.",
+   "current_equivalent": "src/app/admin/page.tsx StatTile 'Avg. credits', hint 'Team readiness proxy'.",
+   "data_source": "org_engagement_stats() avg_credits = round(avg(user_gamification_status.total_credits_earned)) over end_users of the org.",
+   "availability": "partial",
+   "full_view": "None. Propose /admin/engagement (trend of average credits per week, distribution by tier). Left bar: 'Rules' (primary; read-only view of gamification_rules, readable via rules_select true; editing is super admin only at /super/rules), 'Trend'.",
+   "gaps": "'Trend' has no time series. Org admins cannot read other users' gamification_logs (logs_select own only), so a SECURITY DEFINER aggregate org_credit_trend(p_weeks) is needed.",
+   "conflicts": "Small orgs: an average over 1\u20134 members reveals individual totals. Add minimum-n suppression (for example n < 5 \u2192 '\u2014').",
+   "implementation_notes": "S 3\u00d72 default; proposed M 4\u00d73 adds an 8-week sparkline from the new aggregate."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Reflections (KPI, 'reflections'), c3\u00d72 = S, '67', 'Last 30 days'.",
+   "current_equivalent": "src/app/admin/page.tsx StatTile 'Reflections', hint 'Last 30 days'.",
+   "data_source": "org_engagement_stats() reflections_30d = count(reflections joined to users of the org, created_at > now() \u2212 30 days).",
+   "availability": "available",
+   "full_view": "Proposed /admin/engagement (weekly reflection counts). Left bar: 'Trend' (primary), 'Export'.",
+   "gaps": "No trend series and no export.",
+   "conflicts": "Reflection text is private (reflections_select own only). Any export must be counts only.",
+   "implementation_notes": "S 3\u00d72 default; proposed M adds an 8-week bar strip (aggregate RPC)."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Weekly activity (table, 'weekly'), default c8\u00d74 = XL; subtitle 'Generated routines per ISO week'; footer 'Last 8 weeks \u00b7 total 412'.",
+   "current_equivalent": "src/app/admin/page.tsx TableCard 'Weekly activity' / 'Generated routines per ISO week'. Columns Week, Sim, Flight, Debrief, Training (hidden on phones) and Total with bar; 'Total <grand>'. ROUTINE_COLS excludes coaching on purpose.",
+   "data_source": "org_engagement_stats() weekly_sessions = [{week 'IYYY-\"W\"IW', routine, n}] from routine_sessions of the org, created_at > now() \u2212 8 weeks, grouped by week and routine_code.",
+   "availability": "partial",
+   "full_view": "None. Propose /admin/activity: 8/16/52 weeks, every routine column, CSV export (/api/admin/activity.csv, audit critical). Left bar: 'Export CSV' (primary), 'Filter', '8 \u2192 16 wk'.",
+   "gaps": "The RPC hardcodes 8 weeks (add p_weeks, capped). Weeks with zero sessions are absent (generate_series needed). No CSV. No routine filter.",
+   "conflicts": "The concept adds a 'Coaching' column and counts it in Total (31+12+6+9+4 = 62). The repo deliberately excludes manager coaching ('manager coaching sessions have no column here') because it is admin activity, not crew engagement. Decide. Column order differs: concept Flight, Sim, Training, Debrief, Coaching; repo Sim, Flight, Debrief, Training.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: this week's total + delta vs last week.\nM 5\u00d73: 3 latest weeks, 'Week' | total bar.\nL 8\u00d73: 4 weeks, all columns, no footer.\nXL 8\u00d74 (default): uppercase header + 5 weeks + footer 'Last 8 weeks \u00b7 total <n>' + 'Full activity \u2192'.\nWeek label 'W41' = week.split('-')[1]. Use one <table> (existing .dt styles)."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Readiness tiers ('tiers', subtitle 'crew per tier'), default c4\u00d74. A 4-row span at 4 columns, outside the S/M/L/XL classes on the sizes board.",
+   "current_equivalent": "src/app/admin/page.tsx Card 'Readiness tiers': rows Bronze/Silver/Gold/Platinum with ProgressBar (tones neutral, acc, warn, ok) and count.",
+   "data_source": "org_engagement_stats() tiers = {tier: count} from user_gamification_status.readiness_tier of end_users. Thresholds in readiness_tiers.",
+   "availability": "available",
+   "full_view": "Proposed /admin/engagement#tiers (distribution over time and thresholds, read-only). Thresholds are edited only at /super/rules. Left bar: 'Rules' (primary, read-only), 'Export'.",
+   "gaps": "No history. No thresholds shown to org admins.",
+   "conflicts": "Names: Bronze/Silver/Gold/Platinum here vs 'Ready \u2192 Proficient' on the crew boards. Small-n counts (for example 'Platinum 1') identify individuals' engagement level; consider suppression.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: one stacked 4-segment bar + legend counts.\nM 4\u00d73: 4 rows label | count.\nL 4\u00d74 (board default): rows with bars.\nXL 8\u00d74: L + min credits per tier + average credits per tier.\nTier dots need text labels (they have them)."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Sharing requests ('consents'), c4\u00d73 = M; rows Pending 6, Approved 38, Declined 4, Expired 11.",
+   "current_equivalent": "src/app/admin/page.tsx SideCard 'Sharing requests' with RuleList (dots warn/ok/bad/neutral).",
+   "data_source": "org_engagement_stats() consents = {status: count} from consent_requests of the org. It uses the raw status, so time-expired pending rows count as 'pending' until cron or expire_stale_consents() runs.",
+   "availability": "available",
+   "full_view": "Aggregate only: proposed /admin/engagement#consents (trend, approval rate, median response time = responded_at \u2212 requested_at, split by routine_type). Never individual requests.",
+   "gaps": "Effective status (pending with expires_at < now \u2192 expired) is not applied. No trend.",
+   "conflicts": "CONSENT PRIVACY: the left-bar tools 'Review' (primary) and 'Remind' conflict with the rules. Org admins cannot and must not see individual requests (RLS consent_select is requester, target or super admin only). 'Review' must open the aggregate view. 'Remind' could only be a server-side anonymous nudge to everyone with a pending inbox, which needs notification infrastructure that does not exist. Concept colours (Pending red, Declined grey) vs repo tones (pending warn, declined bad).",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: pending count large + 'approved <n>'.\nM 4\u00d73 (default): 4 rows.\nL 5\u00d73: + approval rate and median response time.\nXL 8\u00d74: + matrix by routine_type \u00d7 status."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Training-needs signal ('needs', subtitle 'sessions, 8 weeks'), c4\u00d73 = M; rows 'Flight briefing' 124, 'Simulator' 54, 'Debrief' 35, 'Training' 29.",
+   "current_equivalent": "src/app/admin/page.tsx SideCard 'Training-needs signal' / 'Where crews invest preparation', RuleList of sessions_by_routine sorted desc with ROUTINE_LABELS.",
+   "data_source": "org_engagement_stats() sessions_by_routine (ALL TIME, includes coaching). The concept's 8-week figure can be derived by summing weekly_sessions per routine (already returned).",
+   "availability": "partial",
+   "full_view": "/admin/activity (proposed) grouped by routine. Left bar: 'Export' (primary), 'Filter'.",
+   "gaps": "Window mismatch (all time vs 8 weeks). Coaching should be excluded from a crew training signal.",
+   "conflicts": "Labels 'Flight briefing' / 'Simulator' vs ROUTINE_LABELS 'Flight' / 'Simulator session'; the repo also lists 'Manager coaching'.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: top routine + count.\nM 4\u00d73: 4 ranked rows.\nL 5\u00d73: + share bars.\nXL 8\u00d74: + 8-week sparkline per routine from weekly_sessions."
+  },
+  {
+   "widget": "Org admin \u00b7 Dashboard \u00b7 Anonymity wall ('privacy'), c4\u00d73 = M, static notice.",
+   "current_equivalent": "Copy in src/app/admin/page.tsx PageHero ('Anonymous aggregates only. No names, no profiles, no individual outputs.') and the /admin/users description ('Only the technical status \"Report loaded: Yes/No\" is visible here, never report content.').",
+   "data_source": "None (static).",
+   "availability": "available",
+   "full_view": "None. Propose /admin/privacy or a docs link. Left bar: 'Policy' (primary).",
+   "gaps": "No policy page.",
+   "conflicts": "The copy 'Everything on this dashboard is an aggregate. No names\u2026' holds for the Dashboard page only. The concept's other org-admin pages show names (Users & crews, Missing reports, Sessions this month, Redemption requests), so scope the sentence. Decide whether this compliance notice may be hidden.",
+   "implementation_notes": "S 3\u00d72: first sentence + 'Policy \u2192'. M 4\u00d73: both paragraphs. No L/XL."
+  },
+  {
+   "widget": "Org admin \u00b7 Users & crews page \u00b7 Users & crews table ('userstable', meta '48 members', footer '7 of 48 \u00b7 search, or filter by team'), default c8\u00d75. Five rows, beyond the XL class (4 rows).",
+   "current_equivalent": "src/app/admin/users/page.tsx + users-table.tsx: TableCard columns Member (avatar, name, email), Role (ROLE_LABELS), Team, Category (CATEGORY_LABELS), Report ('Loaded'/'Missing'), Edit (end_users only). Filters q/team/category. Buttons 'Add crew member' (modal) and Edit drawer (team, category, gender).",
+   "data_source": "users (id, full_name, email, role, team, operational_category, gender, has_active_report) where organization_id = mine, limit 500. RLS users_select (org admin of org); updates via users_update (org admin may update end_users only) and updateUser (audited user.updated).",
+   "availability": "available",
+   "full_view": "/admin/users (the page itself). Add 'Assign team' bulk, Export, and a ?report=missing filter. Left bar: 'Invite' (primary), 'Assign team', 'Filter', 'Export'.",
+   "gaps": "Bulk team assignment (multi-select), export, and a per-widget search box at large sizes. The concept rows have no email.",
+   "conflicts": "NAMING: the concept 'Role' column shows 'Captain', 'First officer', 'Pilot', 'Cabin manager', which are operational categories in the repo; the repo Role is 'Crew member' / 'Organization admin'. The concept 'Category' values 'Line pilot', 'Instructor', 'Cabin crew' do not exist (OPERATIONAL_CATEGORIES = military_pilot, civilian_pilot, management, first_officer, captain, other). Team format '787 \u00b7 Team A' is free text.",
+   "implementation_notes": "Proposed sizes.\nS 3\u00d72: '<N> members \u00b7 <n> missing' + 'Open \u2192'.\nM 4\u00d73: 3 rows name + report dot (with text).\nL 6\u00d73: 4 rows Member | Team | Report.\nXL 8\u00d74: header + 5 rows Member | Role | Team | Category | Report | Edit + '<n> of <N>' + 'All members \u2192'.\nOptional 'XL tall' 8\u00d75 (board default): 6\u20137 rows + search field.\nRows are computed from height, never a fixed 7."
+  },
+  {
+   "widget": "Org admin \u00b7 Users & crews page \u00b7 Teams ('teams', meta 'members'), c4\u00d73 = M.",
+   "current_equivalent": "Implicit: the team Select options on /admin/users are computed from distinct users.team.",
+   "data_source": "users.team (free text) grouped and counted for the org (the 'everyone' query in UsersPage).",
+   "availability": "partial",
+   "full_view": "/admin/users?team=<team> (existing filter). A /admin/teams page only if teams become entities. Left bar: 'New team' (primary), 'Edit'.",
+   "gaps": "There is no teams table, so 'New team' and 'Edit' (rename across members) are missing. Propose public.org_teams(id, organization_id, name, fleet) with RLS for the org admin of that org.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72: '<n> teams' + largest. M 4\u00d73: rows team | members. L 5\u00d73: + report coverage per team. No XL."
+  },
+  {
+   "widget": "Org admin \u00b7 Users & crews page \u00b7 Missing reports ('missing', meta '7 total'), default c4\u00d72: an S at 4 columns.",
+   "current_equivalent": "The status line on /admin/users ('<n> missing') and the 'Missing' StatusText in the table.",
+   "data_source": "users where organization_id = mine, role 'end_user', has_active_report false. 'since 12 Sep' has no source: no 'missing since' timestamp exists; users.created_at is a proxy (unlink time lives only in wall.identity_audit_log).",
+   "availability": "partial",
+   "full_view": "/admin/users?report=missing (new filter). Left bar: 'Remind' (primary), 'Ingest' \u2192 /admin/ingest.",
+   "gaps": "No email or notification sending for 'Remind' (only Supabase auth emails). No true 'since' date.",
+   "conflicts": "Allowed: per-member 'Report loaded: Yes/No' is the one per-person signal org admins may see.",
+   "implementation_notes": "S 4\u00d72: meta '<n> total', 2 names + 'since <date>', footer '+N more'. M 4\u00d73: 3\u20134 names + 'All <n> \u2192'. L 6\u00d73: + team + 'Remind all'."
+  },
+  {
+   "widget": "Org admin \u00b7 Users & crews page \u00b7 Invite a member ('invite'), c4\u00d73 = M; fields 'Work email', Role 'Crew member' / 'Org admin', note 'Invites expire in 7 days', button 'Send invite'.",
+   "current_equivalent": "The 'Add crew member' modal in src/app/admin/users/users-table.tsx \u2192 addUser (src/app/admin/actions.ts). It takes email, full name, team, category and gender, calls provisionUser with role 'end_user', and returns a one-time temporary password (audited user.created, critical).",
+   "data_source": "addUser / provisionUser (src/lib/provision.ts, Supabase auth admin), NewUserInput (full_name required).",
+   "availability": "partial",
+   "full_view": "/admin/users ('Add crew member' modal; bulk invite page if added). Left bar: 'Send' (primary), 'Bulk CSV'.",
+   "gaps": "No invitations table, no email invite, no 7-day expiry, no CSV import. The concept omits 'Full name', which NewUserInput requires.",
+   "conflicts": "ROLE ESCALATION: the 'Org admin' role option is not allowed. addUser hardcodes end_user, createOrgAdmin is super_admin only, and RLS users_update lets org admins modify end_users only. Restrict to 'Crew member' (or route admin invites through super-admin approval). The temporary password (shown once) must never be kept in widget or layout state.",
+   "implementation_notes": "S 4\u00d72: email field + 'Send' icon button (the primary stays). M 4\u00d73: email + role (crew only) + 'Send invite' + note. L 6\u00d73: + full name and team. No XL."
+  },
+  {
+   "widget": "Org admin \u00b7 Report ingestion page \u00b7 Profiles in the wall ('profiles', meta 'anonymous codes only'), default c8\u00d74 = XL; footer '44 profiles \u00b7 41 linked \u00b7 3 awaiting mapping by the super admin'.",
+   "current_equivalent": "src/app/admin/ingest/page.tsx TableCard 'Profiles' / 'Anonymous codes only'. Columns Token (Mono), Framework, Ingested, Status ('Linked' / 'Awaiting mapping'). Status line '<n> profiles in wall', '<n> linked', '<n> awaiting mapping'.",
+   "data_source": "admin_wall_list_profiles(p_org_id) via createAdminClient (service role, server only): id, code, framework, created_at, is_linked. Codes and flags only, never identity.",
+   "availability": "available",
+   "full_view": "/admin/ingest. Left bar: 'Upload' (primary), 'Filter', 'Export'.",
+   "gaps": "No filter (linked or awaiting, framework). No export.",
+   "conflicts": "TOKEN FORMAT: concept 'SKY-7F3A-91' vs the repo check constraint '^PROF-[0-9]{4}[A-Z]-[A-Z]$' (for example 'PROF-1234A-B'). An export of codes must never be joinable to identity (it is not).",
+   "implementation_notes": "S 3\u00d72: '<n> profiles \u00b7 <n> awaiting'. M 4\u00d73: 3 rows token + status dot with text. L 5\u00d73: 4 rows Token | Framework | Status. XL 8\u00d74: header + 5 rows + the footer counts + 'All profiles \u2192'."
+  },
+  {
+   "widget": "Org admin \u00b7 Report ingestion page \u00b7 Batch upload ('batch', meta 'PDF only'), default c4\u00d74; copy 'Drop PDFs here', 'or browse', 'up to 10 files \u00b7 10 MB each', 'Each report is stored under an anonymous token', 'Upload'.",
+   "current_equivalent": "src/app/admin/ingest/page.tsx SideCard 'Batch upload' / 'PDF only \u00b7 up to 10 files \u00b7 10 MB each' with BatchUploader (batch-uploader.tsx, Dropzone).",
+   "data_source": "POST /api/reports/upload \u2192 ingestReport (src/lib/reports.ts, unpdf, normalize_report prompt, admin_wall_ingest_profile). Limits from src/lib/limits.ts (MAX_PDF_MB, 4 MB on Netlify).",
+   "availability": "available",
+   "full_view": "/admin/ingest. Left bar: 'Upload' (primary), 'Browse'.",
+   "gaps": "The copy must use MAX_PDF_MB, not a hard-coded '10 MB'.",
+   "conflicts": "Dropping files onto a widget conflicts with dragging widgets on the canvas. Distinguish file drags by checking that dataTransfer.types includes 'Files'.",
+   "implementation_notes": "S 4\u00d72: 'Upload PDFs' button (file input) + limits line. M 4\u00d73: compact dropzone + button. L 4\u00d74 (default): full dropzone + per-file progress list. No XL."
+  },
+  {
+   "widget": "Org admin \u00b7 Report ingestion page \u00b7 How mapping works ('ingestnote'), c4\u00d73 = M, static.",
+   "current_equivalent": "The /admin/ingest PageHero description ('\u2026the token-to-identity mapping is handled only by the super admin.').",
+   "data_source": "None (static).",
+   "availability": "available",
+   "full_view": "Policy page (proposed /admin/privacy). Left bar: 'Policy'.",
+   "gaps": "No policy page.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72: first sentence + 'Policy \u2192'. M 4\u00d73: both paragraphs ('\u2026the member then sees \"Report verified\".')."
+  },
+  {
+   "widget": "Org admin \u00b7 Feedback coaching page \u00b7 Coaching guidance form ('coachform'), default c7\u00d75; fields 'Employee' ('Choose an employee\u2026'), 'What is the conversation about?', 'Tone you are aiming for' ('Supportive' / 'Direct' / 'Developmental'), note 'Every generation is logged \u00b7 the employee's profile is never shown', button 'Generate guidance'.",
+   "current_equivalent": "src/app/admin/coaching/coaching-form.tsx (Panel 'Prepare the conversation': 'Employee', 'Type of conversation', 'What happened / what do you want to address?', 'Your goal for the conversation', 'Get coaching guidance'). The InsightCards output renders below the form on /admin/coaching.",
+   "data_source": "Employees: users (id, full_name, team, has_active_report) where org = mine and role end_user (RLS users_select). Generation: generateCoaching \u2192 runCoachingRoutine (src/lib/routines.ts). It asserts org_admin/super_admin, requires the employee to be in the same org with a report, raises EMPLOYEE_PRIVATE when sharing_level is level_0_private, applies enforceModelBudget('coaching'), saves routine_sessions (routine_code 'coaching', primary = manager, partner = employee) and audits coaching.generated.",
+   "availability": "partial",
+   "full_view": "/admin/coaching for the form. The guidance output needs a new /admin/coaching/[id]. /app/routines/[id] technically works (primary_user_id = admin) but sits in the crew shell and offers a crew 'Reflection'. Left bar: 'Generate' (primary), 'Clear', 'History'.",
+   "gaps": "'Tone' is not in ScenarioContextSchema (scenario, aircraft, phase, notes): add a field and use it in the coaching prompt, or fold it into notes. The output cannot fit in a widget, so redirect to the detail route. The employee picker cannot tell who opted out (prefs_select is owner only), so generation fails late. Add a SECURITY DEFINER coaching_eligible_employees() returning id, name, team, eligible.",
+   "conflicts": "ROLE: coaching stays manager-only (never a crew routine). ANONYMITY: the employee's profile is never shown, and the output is guidance only. This is already enforced by prompt and server.",
+   "implementation_notes": "S 4\u00d72: employee picker + 'Generate' icon button that opens a Drawer with the remaining fields. M 7\u00d73: employee + one-line topic + tone segmented + 'Generate guidance'. L 7\u00d75 (default): all fields + the logged note. XL 12\u00d75: form + preview of the latest guidance (card titles) + 'Open \u2192'."
+  },
+  {
+   "widget": "Org admin \u00b7 Feedback coaching page \u00b7 How it works ('coachhow'), c5\u00d73 = M; '14 employees eligible this month'.",
+   "current_equivalent": "The SideCard 'How it works' in /admin/coaching (3 numbered steps + 'Employees can opt out via their privacy settings.') and the status line '<n> employees eligible'.",
+   "data_source": "Count of org end_users with has_active_report (current 'eligible'). Opt-outs are not counted (prefs are owner-only).",
+   "availability": "available",
+   "full_view": "Policy page. Left bar: 'Policy'.",
+   "gaps": "The eligible count ignores sharing opt-outs; use coaching_eligible_employees().",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72: '<n> employees eligible' + 'Policy \u2192'. M 5\u00d73: full copy."
+  },
+  {
+   "widget": "Org admin \u00b7 Feedback coaching page \u00b7 Sessions this month ('coachlog', meta '9 sessions'), default c5\u00d72: an S at 5 columns; rows 'Omer Levi \u00b7 line check feedback \u00b7 4 Oct'.",
+   "current_equivalent": "Only a count today: the /admin/coaching status line '<n> sessions this month'.",
+   "data_source": "routine_sessions where primary_user_id = me (the admin), routine_code 'coaching', created_at \u2265 month start (RLS sessions_select own). Employee name = users.full_name via partner_user_id (users_select org admin). Topic = scenario_context.phase.",
+   "availability": "partial",
+   "full_view": "Proposed /admin/coaching/history (all of the admin's coaching sessions, paginated) \u2192 /admin/coaching/[id]. Left bar: 'Open' (primary), 'Export'.",
+   "gaps": "No list, history or detail pages.",
+   "conflicts": "Export must exclude ai_generated_output (it is derived from the employee's profile) or be audited critical. Topics are only the admin's own notes.",
+   "implementation_notes": "S 5\u00d72: meta count + 2 newest rows. M 5\u00d73: 4 rows + 'All sessions \u2192'. L 7\u00d73: Employee | Topic | Date. XL 8\u00d74: header + 5 rows + '<n> of <N>'."
+  },
+  {
+   "widget": "Org admin \u00b7 Rewards page \u00b7 Redemption requests ('requests', meta '3 open'), default c7\u00d74; columns 'Member', 'Reward', 'Cost', 'Requested', 'Status', actions 'Approve' / 'Deliver'; footer 'Approve, then mark as delivered. Cancelling refunds the credits.'.",
+   "current_equivalent": "The Card 'Redemption requests' on src/app/admin/rewards/page.tsx (member, '<reward> \u00b7 <cost> cr \u00b7 <date>', status Pill, 'Approve', 'Mark delivered', 'Cancel & refund' with confirm).",
+   "data_source": "reward_redemptions with users!reward_redemptions_user_id_fkey(full_name, email), limit 100 (RLS redemptions_select org admin). setRedemptionStatus (redemption_guard trigger: forward-only, cancel refunds and restocks; audited redemption.<status>).",
+   "availability": "available",
+   "full_view": "/admin/rewards. Left bar: 'Approve' (primary), 'Deliver', 'Cancel'.",
+   "gaps": "The concept shows 'Deliver' only once approved, while the repo allows delivering from 'requested'. Decide.",
+   "conflicts": "None. Member names are allowed here (operational, not psychometric).",
+   "implementation_notes": "S 3\u00d72: '<n> open' + oldest open request with its next action. M 5\u00d73: 3 open rows. L 7\u00d73: one-line Member | Reward | Cost | Status | action. XL 7\u00d74 (default) or 8\u00d74: + 'Requested' + header + '<n> of <N>' + 'All requests \u2192'. 'Cancel & refund' only behind its confirm."
+  },
+  {
+   "widget": "Org admin \u00b7 Rewards page \u00b7 Catalog ('catalog', meta '4 rewards'), default c5\u00d74; columns 'Reward', 'Cost', 'Inventory', 'Status'; footer '1,850 credits redeemed this quarter'.",
+   "current_equivalent": "The 'Catalog' TableCard on /admin/rewards (Reward + description, Cost, Inventory, Status, 'Activate'/'Deactivate') and the status line '<n> credits redeemed this quarter'.",
+   "data_source": "organization_rewards for the org, including inactive (rewards_select lets the org admin see inactive). toggleReward. Quarter total from reward_redemptions credits_spent (status \u2260 cancelled, created_at \u2265 quarter start).",
+   "availability": "available",
+   "full_view": "/admin/rewards. Left bar: 'Add' (primary), 'Edit', 'Deactivate'.",
+   "gaps": "No 'Edit' (no updateReward action, although RewardInput exists). createReward and toggleReward write no audit row.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72: '<n> rewards \u00b7 <n> active'. M 5\u00d73: 3 rows title | cost | status. L 5\u00d74 (default): full columns + quarter footer. XL 8\u00d74: + description, redemptions per reward, activate toggle."
+  },
+  {
+   "widget": "Org admin \u00b7 Rewards page \u00b7 Add a reward ('addreward'), c5\u00d73 = M; fields 'Title', 'Cost in credits', note 'Visible to all crew at once', button 'Publish'.",
+   "current_equivalent": "The modal in src/app/admin/rewards/add-reward.tsx ('Add reward', 'Published immediately to your organization's catalog.', 'Publish reward') \u2192 createReward.",
+   "data_source": "createReward (RewardInput: title, description, cost_in_credits, inventory_count -1 = unlimited) inserts into organization_rewards (RLS rewards_insert: org admin, created_by = me). is_active defaults true.",
+   "availability": "partial",
+   "full_view": "/admin/rewards. Left bar: 'Publish' (primary), 'Draft'.",
+   "gaps": "'Draft' = insert with is_active false; createReward has no flag. Description and inventory are missing from the concept form.",
+   "conflicts": "None.",
+   "implementation_notes": "S 4\u00d72: title field + 'Publish' icon button. M 5\u00d73: title + cost + Publish + note. L 5\u00d74: + description + inventory (blank = unlimited)."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 Organizations (KPI 'orgs'), c3\u00d72 = S; '4', '9 admins'.",
+   "current_equivalent": "src/app/super/page.tsx StatTile 'Organizations' (hint '<n> admins', href /super/organizations).",
+   "data_source": "organizations count (service role) + admin_org_stats() sum of admins.",
+   "availability": "available",
+   "full_view": "/super/organizations. Left bar: 'Open' (primary), 'New org'.",
+   "gaps": "None.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72 only (M 4\u00d73 could add the newest org)."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 Users (KPI 'users'), c3\u00d72 = S; '212', '198 crew'.",
+   "current_equivalent": "src/app/super/page.tsx StatTile 'Users' (hint '<n> crew', href /super/organizations).",
+   "data_source": "users count (service role) + admin_org_stats() crew.",
+   "availability": "available",
+   "full_view": "Missing. There is no cross-org user list (the tile links to /super/organizations). Propose /super/users. Left bar: 'Open' (primary), 'Export' (audit critical).",
+   "gaps": "No /super/users page and no export.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 Reports linked (KPI 'linked'), default c2\u00d72; '180', '91% of crew'.",
+   "current_equivalent": "src/app/super/page.tsx StatTile 'Reports linked' (hint '<%> of crew', href /super/mapping).",
+   "data_source": "admin_org_stats() reports = count(has_active_report) across all roles, divided by crew.",
+   "availability": "available",
+   "full_view": "/super/mapping. Left bar: 'Mapping' (primary).",
+   "gaps": "The numerator counts all roles while the denominator is crew only (the concept's 'Demo \u00b7 Sandbox 18 crew, 28 reports' reflects the same quirk).",
+   "conflicts": "2-COLUMN SPAN: at 2 columns the titles wrap to two lines in the screenshot ('Unlinked profiles', 'Routine sessions'), against the .ell rule. No 2-column class exists on the sizes board.",
+   "implementation_notes": "Allow S 3\u00d72 minimum (5 tiles = 15 columns, so the overview row needs 3+3+2+2+2 \u2192 make it 4 tiles of 3, or 2 lines of tiles). If 2\u00d72 stays, permit a 2-line title clamp."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 Unlinked profiles (KPI 'unlinked'), c2\u00d72; '3' in red, 'Awaiting mapping'.",
+   "current_equivalent": "src/app/super/page.tsx StatTile 'Unlinked profiles' (tone warn, href /super/mapping) and the sidebar badge in super/layout.tsx.",
+   "data_source": "admin_wall_unlinked_profiles({}).length. This over-fetches candidate_email and candidate_name only to count, and runs twice per request (layout + page).",
+   "availability": "available",
+   "full_view": "/super/mapping. Left bar: 'Map now' (primary).",
+   "gaps": "Add admin_wall_unlinked_count() (service role) and cache it per request.",
+   "conflicts": "Fetching identity hints for a count needlessly widens their exposure. Colour: red in the concept vs warn in the repo.",
+   "implementation_notes": "S 3\u00d72 (see the 2-column issue)."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 Routine sessions (KPI 'sessions'), c2\u00d72; '1,284', '62 this week'.",
+   "current_equivalent": "src/app/super/page.tsx StatTile 'Routine sessions' (hint '<n> this week', href /super/analytics).",
+   "data_source": "routine_sessions count, plus count with created_at \u2265 isoDaysAgo(7) (a rolling 7 days, not the ISO week).",
+   "availability": "available",
+   "full_view": "Missing. /super/analytics is psychometric research, not usage. Propose /super/usage (sessions per org, week and routine; model, prompt_version, input_tokens and output_tokens are already stored). Left bar: 'Analytics' (primary).",
+   "gaps": "No usage page. 'this week' semantics.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 Recent audit events ('audit', meta 'application log'), default c8\u00d74 = XL; columns 'When', 'Action', 'Target', 'Actor'; footer 'Identity-wall events have their own log on the mapping page'.",
+   "current_equivalent": "src/app/super/page.tsx TableCard 'Recent audit events' (12 rows, action dot via actionTone, target 'type:id', actor email or 'system').",
+   "data_source": "audit_log (id, action, actor_user_id, target_type, target_id, created_at), limit 12, + users.email for actors (service role; RLS audit_select super admin).",
+   "availability": "available",
+   "full_view": "Missing. Propose /super/audit (filters by action prefix, actor, org and date; 'Older' pagination; CSV export). Left bar: 'Export' (primary), 'Filter', 'Older'.",
+   "gaps": "No full audit page. Relative 'When' ('12:41', 'Yesterday'). Readable targets ('flight \u00b7 v7', 'Northwind Air') need joins.",
+   "conflicts": "ACTION NAMES: the concept uses 'prompt.activate', 'org.create', 'reward.publish', 'rule.update', 'user.invite'. The repo writes prompt.created, prompt.activated, organization.created, rule.updated, tier.updated, user.created, user.updated, org_admin.created, reward.redeemed, redemption.<status>, routine.generated, coaching.generated, research.exported, prompt.playground, report.self_uploaded and report.batch_ingested. Reward publishing is not audited.",
+   "implementation_notes": "S 3\u00d72: latest event + count today. M 4\u00d73: 3 rows action + when. L 6\u00d73: 4 rows When | Action | Actor. XL 8\u00d74 (default): + Target + footer."
+  },
+  {
+   "widget": "Super admin \u00b7 Overview \u00b7 System health ('health'), default c4\u00d74; rows 'Database' healthy, 'Auth' healthy, 'AI engine' 'live \u00b7 claude-opus-5', 'Effort' medium, 'Last deploy' 'today 08:12'.",
+   "current_equivalent": "Partial: the console status lines ('All systems healthy', 'AI mock mode' or '<model> \u00b7 effort <effort>') and the /api/health route.",
+   "data_source": "/api/health (db ok + latency, 3 s timeout). serverEnv() AI_MODE, ANTHROPIC_MODEL, ANTHROPIC_EFFORT (src/lib/env.ts).",
+   "availability": "partial",
+   "full_view": "Proposed /super/health (history of checks, model budget usage from private.rate_limits). Left bar: 'Refresh' (primary, router.refresh), 'Prompts' \u2192 /super/prompts.",
+   "gaps": "There is no auth check and no deploy timestamp (inject a build-time env such as NEXT_PUBLIC_BUILD_TIME). 'All systems healthy' is a hard-coded label today.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72: an overall status dot + text. M 4\u00d73: DB, Auth, AI. L 4\u00d74 (default): all 5 rows. XL n/a."
+  },
+  {
+   "widget": "Super admin \u00b7 Identity mapping page \u00b7 Unlinked profiles worklist ('unlinkedw', meta '3 awaiting'), default c7\u00d74; row 'SKY-2C8D-04' | 'Skyline \u00b7 ADAPT' | 'hint: n.peretz@\u2026' | user select 'Noa Peretz (suggested)' | 'Link'; footer 'Candidate identity hints were extracted from the report text and are visible only here.'.",
+   "current_equivalent": "The 'Unlinked profiles' Card on src/app/super/mapping/page.tsx (per selected org: code, framework, date, candidate name and full email, user Select with the suggested match preselected, 'Link'), plus 'Auto-match by candidate email'.",
+   "data_source": "admin_wall_unlinked_profiles(p_org_id) (code, framework, organization_id, created_at, candidate_email, candidate_name) + users without a report in the org + linkProfile / autoMatch (admin_wall_link_profile, admin_wall_auto_match; identity_audit_log).",
+   "availability": "partial",
+   "full_view": "/super/mapping. Left bar: 'Link' (primary), 'Auto-match', 'Skip'.",
+   "gaps": "The concept lists across organizations, while the page is per-org with a switcher, so each row needs its own candidate list. 'Skip' has no state. Email masking ('n.peretz@\u2026') is not implemented.",
+   "conflicts": "IDENTITY WALL: candidate hints belong only on the console. Masking in the widget, with the full value in the full view, is safer for a glanceable canvas.",
+   "implementation_notes": "S 3\u00d72: '<n> awaiting' + 'Map now'. M 5\u00d73: 3 rows token + suggested user. L 7\u00d74 (default): full rows with Link. XL 8\u00d74: + framework and ingest date."
+  },
+  {
+   "widget": "Super admin \u00b7 Identity mapping page \u00b7 Active mappings ('mappings', meta '180 active'), default c5\u00d74; columns 'User', 'Token', 'Method', 'Linked', 'Unlink'; footer 'Mappings never leave this console'.",
+   "current_equivalent": "The 'Active mappings' TableCard on /super/mapping (User name + email, Token, Method pill, Linked, 'Unlink' with confirm).",
+   "data_source": "admin_wall_list_mappings(p_org_id) (service role) + unlinkProfile (admin_wall_unlink_profile, audited in wall.identity_audit_log).",
+   "availability": "available",
+   "full_view": "/super/mapping. Left bar: 'Unlink' (primary), 'Filter', 'Export'.",
+   "gaps": "No filter across orgs and no export. A mapping export must be audited critical, or not offered at all.",
+   "conflicts": "IDENTITY WALL: never let this widget be placed outside /super, and never cache its data client-side beyond the page.",
+   "implementation_notes": "S 3\u00d72: '<n> active'. M 5\u00d73: 3 rows user + token. L 5\u00d74 (default): full columns. XL 8\u00d74: + email + org."
+  },
+  {
+   "widget": "Super admin \u00b7 Identity mapping page \u00b7 Identity audit log ('walllog', meta 'all organizations'), c5\u00d73 = M; rows 'link \u00b7 SKY-7F3A-91 \u2192 Dana Cohen', '12:40'.",
+   "current_equivalent": "The SideCard 'Identity audit log' on /super/mapping (last 30: action, time, code \u2192 user email, 'by <actor>').",
+   "data_source": "admin_wall_identity_audit(p_limit) (service role): action, code, user_email, actor_email, metadata, created_at.",
+   "availability": "available",
+   "full_view": "Proposed /super/mapping/audit (paged, filter by action and org, export). Left bar: 'Export' (primary), 'Older'.",
+   "gaps": "No paging. The RPC returns emails, not names ('\u2192 Dana Cohen').",
+   "conflicts": "An export of the identity log is the most sensitive dataset. It must be audited critical.",
+   "implementation_notes": "S 3\u00d72: latest event. M 5\u00d73: 4 rows. L 6\u00d73: + actor. XL 8\u00d74: + metadata."
+  },
+  {
+   "widget": "Super admin \u00b7 Research analytics \u00b7 Dimension averages ('dims', meta '0\u2013100 preference score \u00b7 n = 180'), c6\u00d73; rows 'Extraversion (E)' 46, 'Sensing (S)' 58, 'Thinking (T)' 71, 'Judging (J)' 66.",
+   "current_equivalent": "src/app/super/analytics/page.tsx: the four dimension tiles ('Avg extraversion' etc., value, ProgressBar, lo and hi labels) under the org, gender and category filter form.",
+   "data_source": "fetchResearchRows(filters) \u2192 admin_wall_research_rows (de-identified; service role) + avg() (src/lib/research.ts).",
+   "availability": "available",
+   "full_view": "/super/analytics (+ CSV /api/super/research.csv, audited research.exported). Left bar: 'Export CSV' (primary), 'Filter'.",
+   "gaps": "Filters are page-level today; a widget-level filter must stay in sync with the URL.",
+   "conflicts": "6\u00d73 is not a class on the sizes board.",
+   "implementation_notes": "S 3\u00d72: n + the dimension with the largest deviation. M 6\u00d73 (default): 4 rows with bars. L 8\u00d73: + lo/hi labels and per-filter chips."
+  },
+  {
+   "widget": "Super admin \u00b7 Research analytics \u00b7 By organization ('byorg'), c6\u00d73; columns 'Slice', 'n', 'E', 'S', 'T', 'J'; footer 'Normalised, de-identified profiles'.",
+   "current_equivalent": "SliceTable 'By organization' on /super/analytics.",
+   "data_source": "Research rows grouped by organization name (organizations).",
+   "availability": "available",
+   "full_view": "/super/analytics. Left bar: 'Export CSV' (primary), 'Filter'.",
+   "gaps": "No minimum-n suppression.",
+   "conflicts": "Slices with n = 1\u20134 can re-identify people when combined with gender and category filters.",
+   "implementation_notes": "S 3\u00d72: top slice. M 6\u00d73: 4 rows. L 8\u00d73: all rows (scroll is not allowed, so cap and add 'All \u2192')."
+  },
+  {
+   "widget": "Super admin \u00b7 Research analytics \u00b7 By operational category ('bycat'), c6\u00d73; slices 'Line pilot', 'Instructor', 'Cabin crew', 'Dispatcher'; footer 'No identifiers in this view'.",
+   "current_equivalent": "SliceTable 'By operational category' with CATEGORY_LABELS.",
+   "data_source": "Research rows grouped by users.operational_category.",
+   "availability": "available",
+   "full_view": "/super/analytics.",
+   "gaps": "No minimum-n suppression.",
+   "conflicts": "ENUM: the concept categories do not exist. OPERATIONAL_CATEGORIES are military_pilot, civilian_pilot, management, first_officer, captain, other ('Military pilot', 'Civilian pilot', 'Management', 'First officer', 'Captain', 'Other').",
+   "implementation_notes": "Same size rules as By organization."
+  },
+  {
+   "widget": "Super admin \u00b7 Research analytics \u00b7 By type code ('bytype'), c6\u00d73; footer 'Top 4 of 16 \u00b7 Export CSV from the left bar'.",
+   "current_equivalent": "SliceTable 'By type code' (all present codes sorted by n).",
+   "data_source": "Research rows grouped by normalized_persona.type_code.",
+   "availability": "available",
+   "full_view": "/super/analytics. Left bar: 'Export CSV' (primary), 'All 16'.",
+   "gaps": "No 'Top N of M' cap or count.",
+   "conflicts": "Small-n suppression, as above.",
+   "implementation_notes": "S 3\u00d72: top type. M 6\u00d73: top 4 + 'Top 4 of <n>'. L 8\u00d74: top 8. XL 12\u00d74: all."
+  },
+  {
+   "widget": "Super admin \u00b7 System prompts \u00b7 Prompt versions ('versions', meta '5 families \u00b7 19 versions'), default c7\u00d74; rows 'Flight briefing' 'v7' 'Shorter threat list, named countermeasures' 'Active' 'Rollback'; footer 'Activating switches production immediately; previous versions stay for rollback'.",
+   "current_equivalent": "The 'Versions' TableCard on src/app/super/prompts/page.tsx (Family mono, Version, Notes \u00b7 date, Active/Archived, 'Activate' with confirm).",
+   "data_source": "system_prompts (routine_type, version, notes, is_active, created_at) via service role; activatePrompt \u2192 admin_activate_prompt (advisory lock, audited prompt.activated).",
+   "availability": "partial",
+   "full_view": "/super/prompts (propose /super/prompts/[family] for history and diff). Left bar: 'Activate' (primary), 'Rollback', 'Diff'.",
+   "gaps": "No diff. 'Rollback' = activating the previous version (possible, but no shortcut).",
+   "conflicts": "FAMILIES: the concept has 'Flight briefing', 'Simulator', 'Debrief', 'Coaching' and counts 5 families. The repo has PROMPT_FAMILIES briefing (shared by simulator, flight and training), debrief, coaching and normalize_report, pinned by the system_prompts.routine_type check.",
+   "implementation_notes": "S 3\u00d72: active version per family as one line. M 5\u00d73: 3 rows. L 7\u00d74 (default): full table. XL 8\u00d74: + created_by and date."
+  },
+  {
+   "widget": "Super admin \u00b7 System prompts \u00b7 Prompt playground ('playground'), c5\u00d74; 'Persona' options 'Dana \u00b7 ISTJ captain' / 'Yoav \u00b7 ENFP first officer', 'Draft prompt', 'Live \u00b7 claude-opus-5 \u00b7 effort medium', 'Run test'.",
+   "current_equivalent": "src/app/super/prompts/playground.tsx inside the Panel 'Prompt playground' / 'Test a draft against two demo personas before saving.'.",
+   "data_source": "runPlayground (assertRole super_admin, enforceModelBudget('playground'), fixed DEMO_PERSONA_A/B, audited prompt.playground).",
+   "availability": "partial",
+   "full_view": "/super/prompts. Output belongs in a Drawer or detail. Left bar: 'Run' (primary), 'Clear'.",
+   "gaps": "No persona picker (the personas are fixed constants).",
+   "conflicts": "None. Demo personas only, never real wall data.",
+   "implementation_notes": "S 4\u00d72: family select + 'Run' icon. M 5\u00d73: + scenario. L 5\u00d74 (default): + draft textarea. Output opens in a Drawer."
+  },
+  {
+   "widget": "Super admin \u00b7 System prompts \u00b7 New version ('newversion'), c5\u00d74; 'Routine family' options 'Flight briefing' / 'Simulator' / 'Training' / 'Debrief' / 'Coaching', 'Notes', 'System prompt', 'Activate immediately: off', 'Save version'.",
+   "current_equivalent": "The 'New version' SideCard on /super/prompts \u2192 createPromptVersion.",
+   "data_source": "admin_create_prompt_version (advisory lock, audited prompt.created).",
+   "availability": "available",
+   "full_view": "/super/prompts. Left bar: 'Save' (primary), 'Activate'.",
+   "gaps": "None beyond the families.",
+   "conflicts": "The family list mismatches PROMPT_FAMILIES (see Prompt versions).",
+   "implementation_notes": "S 4\u00d72: family + 'Open editor'. M 5\u00d73: family + notes. L 5\u00d74 (default): + textarea. A textarea in a fixed-height widget must scroll internally, which is an exception to the no-scroll rule."
+  },
+  {
+   "widget": "Super admin \u00b7 Gamification rules \u00b7 Actions & credits ('rules', meta '4 of 5 active'), default c8\u00d75; columns 'Action', 'Credits', 'Cooldown', 'Limit', 'Active'; footer 'Applies to all organizations \u00b7 the credit engine enforces them atomically'.",
+   "current_equivalent": "The Card 'Actions & credits' on src/app/super/rules/page.tsx: an editable grid with one 'Save rules' (updateRules, RulesBatchInput, audited rule.updated).",
+   "data_source": "gamification_rules (action_type, label, credits, cooldown_kind, cooldown_limit, is_active).",
+   "availability": "partial",
+   "full_view": "/super/rules. Left bar: 'Save all' (primary), 'Add rule', 'Revert'.",
+   "gaps": "'Add rule' is meaningless without code: GamificationAction is a code union, and awardCredits callers define when an action fires.",
+   "conflicts": "ACTION TYPES: the concept has synergy_brief, solo_brief, reflection, insight_read and consent_grant. The repo has report_verified, synergy_brief, weekly_insight_read, reflection, consent_given and streak_bonus (seed values 100/25/10/20/15/30).",
+   "implementation_notes": "S 3\u00d72: '<n> of <N> active'. M 5\u00d73: read-only top 3 by credits. L 8\u00d74: editable rows. XL 8\u00d75 (default): all + Save."
+  },
+  {
+   "widget": "Super admin \u00b7 Gamification rules \u00b7 Readiness tiers ('tierrules', meta 'min. credits earned'), default c4\u00d75; 'Bronze \u00b7 0', 'Silver \u00b7 150', 'Gold \u00b7 500', 'Platinum \u00b7 1,200'.",
+   "current_equivalent": "The 'Readiness tiers' SideCard on /super/rules (min credits inputs, 'Save thresholds', 'Changing a threshold recomputes every stored tier.').",
+   "data_source": "readiness_tiers + updateTiers (TiersBatchInput; tiers_recompute statement trigger; audited tier.updated).",
+   "availability": "partial",
+   "full_view": "/super/rules. Left bar: 'Save' (primary), 'Add tier'.",
+   "gaps": "'Add tier' is blocked by the check constraint (exactly 4 named tiers) and the TierInput enum.",
+   "conflicts": "Names Bronze\u2026 here vs 'Ready'/'Proficient' on the crew boards. Concept thresholds 0/150/500/1,200 vs seed 0/100/300/600 (data).",
+   "implementation_notes": "S 3\u00d72: 4 thresholds inline. M 4\u00d73: editable rows. L 4\u00d75 (default): + recompute note."
+  },
+  {
+   "widget": "Super admin \u00b7 Organizations \u00b7 Organizations table ('orgtable', meta '4 organizations'), default c8\u00d74 = XL; columns 'Organization', 'Admins', 'Crew', 'Reports', 'Created'; footer '9 admins \u00b7 198 crew \u00b7 180 reports'.",
+   "current_equivalent": "The TableCard on src/app/super/organizations/page.tsx (name + slug, admins, crew, reports, created).",
+   "data_source": "organizations + admin_org_stats() (service role).",
+   "availability": "available",
+   "full_view": "/super/organizations; propose /super/organizations/[id] (members, admins, rewards, activity). Left bar: 'New org' (primary), 'Open', 'Export'.",
+   "gaps": "No org detail page.",
+   "conflicts": "None.",
+   "implementation_notes": "S 3\u00d72: count. M 4\u00d73: 3 rows name + crew. L 6\u00d73: 4 rows name | crew | reports. XL 8\u00d74 (default): full columns + totals footer."
+  },
+  {
+   "widget": "Super admin \u00b7 Organizations \u00b7 New organization ('neworg'), c4\u00d73; 'Name', 'Slug' ('lowercase, digits, dashes'), 'Create'.",
+   "current_equivalent": "The 'New organization' SideCard \u2192 createOrganization (audited organization.created).",
+   "data_source": "organizations insert (slug check '^[a-z0-9-]{2,64}$').",
+   "availability": "available",
+   "full_view": "/super/organizations. Left bar: 'Create' (primary).",
+   "gaps": "None.",
+   "conflicts": "None.",
+   "implementation_notes": "S 4\u00d72: name + slug inline + 'Create' icon. M 4\u00d73 (default)."
+  },
+  {
+   "widget": "Super admin \u00b7 Organizations \u00b7 New organization admin ('newadmin'), c4\u00d73; 'Organization', 'Email', 'Gets a setup link by email', 'Invite admin'.",
+   "current_equivalent": "NewOrgAdmin (src/app/super/organizations/new-org-admin.tsx: 'Organization', 'Full name', 'Work email') \u2192 createOrgAdmin (temporary password, audited org_admin.created).",
+   "data_source": "provisionUser with role org_admin.",
+   "availability": "partial",
+   "full_view": "/super/organizations. Left bar: 'Invite' (primary).",
+   "gaps": "No email setup link (temporary password today). The concept omits 'Full name'.",
+   "conflicts": "The temporary password must not persist in widget state.",
+   "implementation_notes": "S 4\u00d72: email + 'Invite' icon. M 4\u00d73 (default): org + email + Invite. L 5\u00d74: + full name."
+  }
+ ],
+ "new_capabilities": [
+  "SIZE-CLASS REGISTRY (code, no DB). New src/lib/canvas/registry.ts and src/lib/canvas/grid.ts. Grid: 12 columns, grid-auto-rows 72px, gap 20px. At a 1212px content width a column is \u224882.67px. Span width = n\u00d782.67 + (n\u22121)\u00d720 (2\u2192185.33, 3\u2192288, 4\u2192390.67, 5\u2192493.33, 6\u2192596, 7\u2192698.67, 8\u2192801.33). Span height = r\u00d772 + (r\u22121)\u00d720 (2\u2192164, 3\u2192256, 4\u2192348, 5\u2192440). WidgetDef = {id, surface 'crew'|'org_admin'|'super_admin', page, title, titleAt?: {S:'Credits'}, sizes: Partial<Record<'S'|'M'|'L'|'XL', {cols, rows}>>, defaultSize, rowsBySize (list capacity), fullView href, primaryAction, leftBar tools, allowedRoles}. Sizes are NAMED PRESETS PER WIDGET, not fixed boxes: the board's own S is 3\u00d72 or 4\u00d72, M is 4\u00d73, 5\u00d73 or 7\u00d73, and the admin boards use 2\u00d72, 4\u00d74, 5\u00d74, 6\u00d73, 7\u00d74, 7\u00d75, 8\u00d75 and 4\u00d75. Constrain rows to 2\u20135 and columns to 3\u201312 (drop 2-column tiles or allow a 2-line title clamp). Spans render as inline style gridColumn 'span N' / gridRow 'span N'. This is allowed by the CSP (style-src 'self' 'unsafe-inline'), and it avoids dynamic Tailwind class names, which Tailwind v4 cannot detect. The size badge ('S \u00b7 3\u00d72', U+00D7) shows only in resize mode.",
+  "SIZE-AWARE WIDGET CONTRACT. Each widget is a server component with props {size, data}. Its loader fetches the maximum any size needs (for example 5 rows + total count for list widgets), so a resize re-renders without a refetch. Rows shown = min(rowsBySize[size], floor((cardHeight \u2212 header \u2212 columnHeader \u2212 footer)/rowHeight)), guarding the XL overflow (357px needed vs 348px). The shared WidgetFrame provides: a header <button aria-label='Select widget: <title>'> with the drag-grip glyph, title 15/800 with ellipsis, optional subtitle (M and up), header meta slot (filters at L/XL, counts), the badge in resize mode, overflow hidden, and a footer at margin-top auto. Footers are always <Link>s to the widget's fullView. Tables at L/XL use one shared grid (a <table> using the existing .dt styles, or CSS subgrid) so columns align. Phone (<720px, the md breakpoint 45rem): a single-column stack, height auto, and a per-widget 'phone' variant; the size class is ignored. Tablet (720\u20131180px): clamp spans with Tailwind v4 container queries (@container on the canvas), or switch to an 8-column grid with span = ceil(span \u00d7 8/12).",
+  "PER-USER LAYOUT PERSISTENCE. New table public.user_canvas_layouts (user_id uuid not null references public.users(id) on delete cascade, surface text not null check (surface in ('crew','org_admin','super_admin')), page text not null check (page ~ '^[a-z_]{2,32}$'), layout jsonb not null check (jsonb_typeof(layout) = 'array' and jsonb_array_length(layout) <= 64), locked boolean not null default false, layout_version int not null default 1, updated_at timestamptz not null default now(), primary key (user_id, surface, page)), with the private.set_updated_at trigger. Each entry is {w: widget id, size: 'S'|'M'|'L'|'XL', x?: 1\u201312, y?: \u22651, pinned: bool, hidden: bool, snoozed_until?: timestamptz}. RLS (enable): select, insert, update and delete for authenticated using (user_id = (select auth.uid())). Insert and update WITH CHECK also require user_id = auth.uid() and (surface = 'crew' or (surface = 'org_admin' and private.current_user_role() in ('org_admin','super_admin')) or (surface = 'super_admin' and private.is_super_admin())). Grants: following the repo's lockdown pattern, revoke all from anon and authenticated, then grant select, insert, update, delete to authenticated explicitly. Writes go through zod-validated server actions (src/app/app/canvas-actions.ts, src/app/admin/canvas-actions.ts, src/app/super/canvas-actions.ts): saveWidgetSize(page, widgetId, size), moveWidget(page, widgetId, x, y), setPinned, setHidden, setLocked, resetLayout (delete row \u2192 registry default) and arrangeLayout. Each validates widget id, size and role against the registry. No data or secrets ever go in the layout. Use optimistic concurrency on updated_at. Add negative cases to scripts/rls-check.mjs (read or write another user's layout, crew writing surface 'super_admin').",
+  "RESIZE TOOL (left bar 'Resize', aria-label 'Resize widget'). A popover radiogroup lists only the selected widget's allowed sizes, labelled with the badges ('S \u00b7 3\u00d72', 'M \u00b7 4\u00d73', 'L \u00b7 5\u00d73', 'XL \u00b7 8\u00d74'). Arrow keys choose, Enter applies, Esc cancels. Apply is optimistic: re-flow the grid and call saveWidgetSize. aria-live='polite' announces 'Recent routines resized to Large, 5 by 3'. Pointer resize handles are optional and need the keyboard path as an equivalent (WCAG 2.5.7). Phone: no Resize (the phone action sheet holds only 'Confirm', 'Past', 'Snooze', 'Pin', 'Hide').",
+  "PLACEMENT, SNAPPING, ARRANGE, PIN, LOCK. Unpinned widgets use CSS grid sparse auto-flow in layout order, which is what the concept does. Dragged or pinned widgets store explicit x/y. On resize, colliding widgets are pushed down. 'Arrange' runs a deterministic first-fit (dense) pack that skips pinned items. 'Reset' restores the registry default. 'Lock' (layout.locked) disables move, resize and arrange. Free-rectangle detection feeds the Empty grid slot ('<c> \u00d7 <r> free \u00b7 drop a widget here'). Keyboard move mode: Enter on the header grip \u2192 arrow keys move one cell \u2192 Enter drops, Esc cancels, with live-region feedback. If a DnD library is used it must be bundled (CSP script-src 'self'); dnd-kit-style keyboard sensors are preferred. No CDN.",
+  "WIDGET LIBRARY ('Add') AND HIDE. The library lists registry widgets for the role and page that are hidden or absent, each with a preview of its default size. 'Hide widget' sets hidden true and removes the widget from the canvas, not from the app. 'Add' unhides and places it in the first free slot at the default size. No table beyond user_canvas_layouts.",
+  "CONTEXTUAL LEFT BAR (client state only). Selection state is the widget id. The bar renders the WidgetDef tools: primary first in red (#BD2025 in the concept), then the generic 'Pin', 'Resize', 'Hide', 'Esc' ('Deselect'). It also renders the widget's leftBarDetails(size), the content dropped at smaller sizes. Examples: the Start a routine subtitle and consent sentence at S; the Credits subtitle, '<earned> / <next>', streak and weekly stats at S; Recent routines filters and count at S/M. With nothing selected it shows 'Add', 'Arrange', 'Reset', 'Lock'. Phone: it becomes a bottom sheet above the main bar.",
+  "SNOOZE (Weekly insight 'Snooze: Hide it until next week'). Stored as layout entry snoozed_until = start of next ISO week. If cross-device or per-widget preferences grow, use a separate table public.user_widget_state (user_id, widget_id, snoozed_until timestamptz, prefs jsonb such as the Recent routines filter 'all'|'solo'|'synergy', updated_at; PK (user_id, widget_id); RLS owner-only CRUD as above).",
+  "GUIDE PROGRESS. New table public.user_guide_progress (user_id uuid references public.users on delete cascade, guide_key text check (guide_key in ('crew_canvas','org_canvas','super_canvas')), step int not null default 0, completed_at timestamptz, dismissed_at timestamptz, updated_at timestamptz; PK (user_id, guide_key)). RLS owner-only select, insert and update; explicit grants. Server actions advanceGuide, finishGuide and resetGuide. 'Guide' in the main bar reopens it. The step 'Make the canvas yours' teaches Resize S/M/L/XL. The guide card placement must never cover the target, the left bar or the main bar.",
+  "SEARCH (main bar 'Search'). A command palette with client-side search over the registry (widget titles, pages, actions). Server route GET /api/search?q= (same-origin, session-gated by proxy.ts) runs role-scoped queries with the RLS client: crew get own sessions by scenario text, partners by name (crew_directory) and rewards; org admins get members by name or email, reusing the users-page sanitiser /[^\\p{L}\\p{N} @._-]/gu; super admins get organizations and users. Never search wall content, and org admins never search consent rows. Rate-limit with enforceRateLimit.",
+  "FULL-VIEW ROUTES the widgets link to. New: /app/routines/history (filters mode, routine, page), /app/insights, /admin/activity + /api/admin/activity.csv (audit critical), /admin/engagement (credit trend, tier distribution, consent aggregates), /admin/coaching/[id], /admin/coaching/history, /super/audit, /super/usage, /super/users, /super/health, /super/organizations/[id], /super/mapping/audit. Each is guarded by requireRole and its URL params are parsed with zod.",
+  "DATA RPCS sized for widgets. public.my_credit_summary() (SECURITY INVOKER: balance, earned, streak, week_credits, week_reflections, week_insight_read). org_engagement_stats(p_weeks int default 8), with zero-week rows, effective consent status and minimum-n suppression. org_credit_trend(p_weeks) (SECURITY DEFINER, org admin only). public.coaching_eligible_employees() (SECURITY DEFINER: id, full_name, team, eligible; org admin of the org only). public.admin_wall_get_report_meta(p_user_id) and public.admin_wall_unlinked_count() (service_role only, revoke from public, matching the existing admin_wall_* pattern). Request-level dedupe with React cache() for crew_directory and the unlinked count.",
+  "CONSENT EXTENSIONS for the Consented partners left bar. A migration adds status 'revoked' (consent_guard allows target: approved \u2192 revoked and stamps responded_at), an optional requested_days int check (between 1 and 90), and valid_until = now() + requested_days on approval. runCrewRoutine already requires status 'approved' and valid_until > now().",
+  "INVITES for the 'Invite a member' and 'New organization admin' widgets. Table public.invitations (id, organization_id, email, role check (role in ('end_user','org_admin')), invited_by, token_hash, expires_at default now() + interval '7 days', accepted_at, revoked_at). RLS: org admins select and insert only rows of their own org with role 'end_user'; super admins all. Acceptance route /auth/invite/[token] uses the service role, with email via Supabase auth admin invite. Audit user.invited (critical).",
+  "FORMATTING HELPERS in src/lib/utils.ts: shortName(full) \u2192 'Yoav F.'; relativeDay(iso) \u2192 'Today' / 'Yesterday' / '3 Oct'; relativeAgo(iso) \u2192 'request sent 2 days ago'; sessionTitle(routine_code) unified with the session page; scenarioShort(ctx) = aircraft \u00b7 phase; scenarioLong(ctx); SHORT_ROUTINE labels ('Sim')."
+ ],
+ "page_changes": [
+  "/app (src/app/app/page.tsx) becomes the crew canvas. The PageHero greeting and its status line are removed: report status goes to My report, credits to Credits & tier, and pending requests to Consented partners and the main-bar Sharing dot. Widgets, with defaults from the desktop board: Start a routine M 7\u00d73, Credits & tier M 5\u00d73, Recent routines M 4\u00d73, Weekly insight 4\u00d73, Consented partners 4\u00d73, My report 3\u00d73, Rewards catalog 5\u00d73. The 'report missing' Banner becomes a canvas-level notice plus the My report missing state. The '?error=forbidden' banner stays above the canvas.",
+  "src/app/app/layout.tsx + CrewShell (src/components/shell.tsx). The top nav (Overview, Routines, Sharing, My report, Rewards, Settings) and the phone tab bar are replaced by the bottom main bar: 'Start routine' (red), 'History', 'Sharing' (pending dot), 'Report', 'Rewards' | 'Add', 'Layout', 'Search', 'Theme', 'Guide', 'Org admin' switch, account. The contextual left bar is added. The content max-w goes from 960px to the 1212px canvas. Phone main bar: play button, 'History', 'Sharing', 'Rewards', 'More', with the selected-widget sheet above it.",
+  "/app/routines stays the full view of Start a routine (RoutineGenerator, Consented partners SideCard). Its 'History' section moves to, or gains, filters ('All' / 'Solo' / 'Synergy', routine), pagination, and Scenario and Partner columns (optionally split to /app/routines/history). The Recent routines footers link here.",
+  "/app/routines/[id] stays the session detail. Unify its title rule with the widget ('Simulator briefing' vs 'Simulator session briefing'). Add an #reflection anchor for the left-bar 'Reflect' and the 'Copy cards' source.",
+  "/app/consents stays the full view of Consented partners. Add revoke, per-routine validity, and request duration once the consent migration lands.",
+  "/app/report stays the full view of My report. Add a short Privacy explainer anchor and a replace flow once one is designed.",
+  "/app/rewards stays the full view of Credits & tier and Rewards catalog. Add the full tier ladder, a paginated credit ledger, and #catalog / #redemptions / #how-to-earn anchors for the left-bar tools.",
+  "/app/settings is unchanged and reached from the account menu. Add 'Reset canvas layout' and 'Restart guide'.",
+  "New /app/insights: the full view of Weekly insight (past weeks, ack state, focus filter).",
+  "/admin (src/app/admin/page.tsx) becomes the org canvas tab 'Dashboard'. The StatTiles become the S widgets Crew members, Reports loaded, Avg. credits and Reflections (3\u00d72 each). The Weekly activity TableCard becomes an XL 8\u00d74 widget. Readiness tiers is 4\u00d74; Sharing requests, Training-needs signal and Anonymity wall are 4\u00d73. 'Total' and '8 weeks' move into widget meta and footers.",
+  "src/app/admin/layout.tsx + ConsoleShell. The sidebar (icon rail 720\u20131180, full from 1180) and the phone drawer are replaced by the bottom main bar with page tabs 'Dashboard', 'Users & crews', 'Report ingestion' (badge), 'Feedback coaching', 'Rewards' (badge open redemptions) | 'Add', 'Layout', 'Search', 'Theme', 'Crew app', 'Console', account. The concept's bar overflows: labels overlap in the page5 screenshot at 1440px, so it needs an overflow menu or icon-only tabs below about 1600px.",
+  "/admin/users becomes a canvas tab with Users & crews 8\u00d75, Teams 4\u00d73, Missing reports 4\u00d72 and Invite a member 4\u00d73. The full table remains the full view, gaining a ?report=missing filter and bulk team assignment. The 'Add crew member' modal is retained as the invite fallback.",
+  "/admin/ingest becomes a canvas tab with Profiles in the wall 8\u00d74, Batch upload 4\u00d74 and How mapping works 4\u00d73. The page remains the full view.",
+  "/admin/coaching becomes a canvas tab with Coaching guidance 7\u00d75, How it works 5\u00d73 and Sessions this month 5\u00d72. Generated guidance moves from below the form to the new /admin/coaching/[id]; add /admin/coaching/history.",
+  "/admin/rewards becomes a canvas tab with Redemption requests 7\u00d74, Catalog 5\u00d74 and Add a reward 5\u00d73. The AddReward modal stays for the full view; add an edit-reward action.",
+  "New /admin/activity and /admin/engagement: full views for Weekly activity, Training-needs, Avg. credits, Reflections, Readiness tiers and Sharing requests. Aggregates only, with minimum-n suppression.",
+  "/super (src/app/super/page.tsx) becomes the console tab 'Overview' with Organizations and Users (3\u00d72), Reports linked, Unlinked profiles and Routine sessions (2\u00d72 in the concept; recommend 3\u00d72), Recent audit events 8\u00d74 and System health 4\u00d74.",
+  "src/app/super/layout.tsx + ConsoleShell use the bottom main bar with tabs 'Overview', 'Identity mapping' (badge), 'Research analytics', 'System prompts', 'Gamification rules', 'Organizations'. These labels also overlap in the page6 screenshot.",
+  "/super/mapping becomes a canvas tab with Unlinked profiles 7\u00d74, Active mappings 5\u00d74 and Identity audit log 5\u00d73. The org switcher and 'Auto-match by candidate email' move to the left bar. The full page remains the only place showing full candidate hints.",
+  "/super/analytics becomes a canvas tab with Dimension averages, By organization, By operational category and By type code (6\u00d73 each). The filter form moves to the left bar 'Filter' and stays in sync with the URL. CSV export is unchanged (/api/super/research.csv).",
+  "/super/prompts becomes a canvas tab with Prompt versions 7\u00d74, Prompt playground 5\u00d74 and New version 5\u00d74. Playground output opens in a Drawer.",
+  "/super/rules becomes a canvas tab with Actions & credits 8\u00d75 and Readiness tiers 4\u00d75. The batch save forms are retained.",
+  "/super/organizations becomes a canvas tab with the Organizations table 8\u00d74, New organization 4\u00d73 and New organization admin 4\u00d73. Add /super/organizations/[id].",
+  "New /super/audit, /super/usage, /super/users, /super/health and /super/mapping/audit: full views for the overview widgets."
+ ],
+ "risks": [
+  "TEXT ZOOM AND CLIPPING (WCAG 1.4.4, 1.4.10, 1.4.12). Fixed 72px rows, overflow hidden, no in-widget scroll and 'text never scales' mean content is clipped at 200% zoom or with user text spacing. XL Recent routines already overflows at 100% (\u2248357px needed vs 348px). Mitigation: rows defined in rem, visible rows computed from measured height (ResizeObserver), and a switch to the single-column auto-height stack when the canvas container is narrower than 720 CSS px (zoom triggers it).",
+  "DRAG AND RESIZE ACCESSIBILITY (WCAG 2.5.7, 2.1.1). Every move and resize needs a single-pointer and keyboard path: the Resize radiogroup, keyboard move mode, and Add to place. The widget header is a <button> ('Select widget: \u2026') that contains a grip, while widgets also contain links and forms. Selection, drag and inner controls must not nest interactives or steal focus. Announce changes via aria-live.",
+  "KEYBOARD CONFLICTS. 'Esc' deselects the widget, but Modal, Drawer, the picker popover and the guide also use Esc. Global shortcuts must not fire while typing in the Coaching form, Invite, New version textarea or Search. Define an Esc priority stack.",
+  "FOCUS OBSCURED (WCAG 2.4.11). The fixed bottom main bar, the phone selected-widget sheet (page2 shows it covering Credits text) and the floating guide card can hide focused elements. Add scroll-padding-bottom equal to the bar height and keep the guide placement rules.",
+  "COLOUR-ONLY MEANING (WCAG 1.4.1). S Recent routines dots (navy Synergy, grey Solo), tier dots and consent dots need text or visually hidden labels. Concept colours (navy #0E153E, red #BD2025, hue 275, no dark-mode values) clash with the repo tokens (--acc oklch(0.5 0.11 235), full dark theme in globals.css). New canvas tokens need dark variants, and contrast for muted #5D6278 on #F5F6FB must be checked.",
+  "PHONES AND TABLETS. The size class is desktop-only. The phone board stacks widgets in one column with no Resize, so persisted sizes must not affect phones. 720\u20131180px (the md to xl range) is undefined: 2-column tiles become about 120px wide. Titles already wrap at 2 columns in the page6 screenshot, against the .ell rule, and the left bar label wraps ('Nothing selecte d', page1). iOS needs 16px inputs in form widgets (existing .ctl rule) and safe-area insets for the bottom bar.",
+  "PERFORMANCE. One canvas page runs many widget loaders: the crew overview already makes 7 parallel queries plus the layout read. The super layout and overview call admin_wall_unlinked_profiles twice. Use per-widget Suspense streaming, React cache() for shared lookups (crew_directory, org stats), max-row prefetch so a resize needs no refetch, debounced layout saves with optimistic UI, and no client-side data libraries. Read node_modules/next/dist/docs before using caching or streaming APIs (Next 16 breaking changes per AGENTS.md).",
+  "CSP. Inline style spans work (style-src 'unsafe-inline'). Any DnD, popover or command-palette library must be bundled, never loaded from a CDN (script-src 'self' 'unsafe-inline'). Fonts must stay self-hosted via next/font (font-src 'self' data:). The concept's six-subset Manrope set is unnecessary. frame-ancestors 'none' means the iframe-based prototype board cannot be embedded for review in production.",
+  "ANONYMITY AND PRIVACY ON A GLANCEABLE CANVAS. Pinned widgets expose more on shared screens: identity mappings, candidate hints, the user's own type, and temporary passwords from Invite or New org admin. Mask hints in widgets, never render type_code on My report, and never keep temp passwords in widget or layout state. Small-n aggregates (avg credits, tier counts, research slices) can re-identify people: add minimum-n suppression. The org-admin left-bar tools 'Review' and 'Remind' on Sharing requests would cross the consent boundary and must stay aggregate.",
+  "ROLE AND RLS DRIFT. The concept puts 'Coaching' in the crew chip row and lets org admins invite 'Org admin'. Both break role limits (CREW_ROUTINES and the consent check; addUser and createOrgAdmin). Layout writes must be validated against the registry per role, but data access must stay enforced by RLS and assertRole, never by widget visibility. New tables need explicit grants (default-privilege lockdown) and negative cases in scripts/rls-check.mjs.",
+  "NAMING DRIFT ACROSS BOARDS. 'Synergy' vs 'Blind synergy'. 'Ready \u2192 Proficient' vs Bronze/Silver/Gold/Platinum (fixed by a check constraint). The audit action names, the gamification action_types (solo_brief, insight_read, consent_grant), the prompt families (Flight briefing/Simulator vs briefing), the token format (SKY-\u2026 vs PROF-\u2026), the operational categories (Line pilot/Instructor/Cabin crew/Dispatcher) and the consent window (14 vs 30 days) all differ. Implementing the concept's copy literally would require migrations and code changes; decide before building.",
+  "LAYOUT SCHEMA EVOLUTION. Renaming or removing widgets, or changing their spans, invalidates stored layouts. Use layout_version with a tolerant parser that drops unknown ids, clamps sizes to the allowed presets and falls back to registry defaults. Two tabs editing the same layout cause last-write-wins; use an updated_at check.",
+  "SIZE MODEL AMBIGUITY. S/M/L/XL map to different spans per widget (S = 3\u00d72 or 4\u00d72; M = 4\u00d73, 5\u00d73 or 7\u00d73). The admin boards use spans outside the four classes (2\u00d72, 4\u00d74, 5\u00d74, 6\u00d73, 7\u00d74, 7\u00d75, 8\u00d75, 4\u00d75). Only Recent routines has a full S\u2013XL spec. Every other widget's S/L/XL content in this map is a proposal derived from the board's rules and needs design sign-off.",
+  "PROTOTYPE DEFECTS TO AVOID. The filter chips, routine chips and footers in the prototype are non-interactive spans. Row grids per row misalign the L/XL columns. The S picker has no menu. The size badges look like UI but are annotations. Hrefs are self-referencing placeholders ('Sizes.dc.html', 'Main.dc.html')."
+ ]
+}
